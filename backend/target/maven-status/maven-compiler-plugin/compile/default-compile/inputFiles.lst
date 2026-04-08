@@ -1,0 +1,16 @@
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\service\AuthService.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\service\QuestionService.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\controller\QuestionController.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\controller\ResultController.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\model\Result.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\controller\GlobalExceptionHandler.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\dto\AuthRequest.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\dto\ResultRequest.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\service\ResultService.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\repository\ResultRepository.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\AdaptiveLearningApiApplication.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\controller\AuthController.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\model\Question.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\repository\AppUserRepository.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\repository\QuestionRepository.java
+C:\Users\Dell\Downloads\adaptive_lms_quiz_app\backend\src\main\java\com\example\adaptivelearning\model\AppUser.java
