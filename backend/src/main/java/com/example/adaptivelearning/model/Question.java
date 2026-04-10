@@ -3,7 +3,11 @@ import jakarta.persistence.*;
 @Entity @Table(name = "questions")
 public class Question {
   @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
-  private String difficulty; private String title; private String type; // MCQ, TF, DRAG_DROP
+  private String difficulty; 
+  private String title;
+   private String type; // MCQ, TF, DRAG_DROP
+  private Integer marks;
+  private Integer timeLimit; // in seconds for the whole quiz (stored in each question for simplicity in this schema)
   @Column(name = "option_a") private String optionA;
   @Column(name = "option_b") private String optionB;
   @Column(name = "option_c") private String optionC;
@@ -20,4 +24,8 @@ public class Question {
   public void setOptionC(String optionC) { this.optionC = optionC; }
   public void setOptionD(String optionD) { this.optionD = optionD; }
   public void setCorrectIndex(Integer correctIndex) { this.correctIndex = correctIndex; }
+  public Integer getMarks() { return marks; }
+  public void setMarks(Integer marks) { this.marks = marks; }
+  public Integer getTimeLimit() { return timeLimit; }
+  public void setTimeLimit(Integer timeLimit) { this.timeLimit = timeLimit; }
 }

@@ -12,8 +12,10 @@ class CreateQuestionScreen extends StatefulWidget {
 class _CreateQuestionScreenState extends State<CreateQuestionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
+  final _marksController = TextEditingController(text: '1');
+  final _timeLimitController = TextEditingController(text: '60');
   final _optionControllers = List.generate(4, (index) => TextEditingController());
-  
+
   String _selectedDifficulty = 'easy';
   String _selectedType = 'MCQ';
   int _correctIndex = 0;
@@ -67,6 +69,28 @@ class _CreateQuestionScreenState extends State<CreateQuestionScreen> {
                 decoration: const InputDecoration(labelText: 'Question Title / Prompt', border: OutlineInputBorder()),
                 maxLines: 2,
                 validator: (val) => val!.isEmpty ? 'Please enter a title' : null,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _marksController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Marks', border: OutlineInputBorder()),
+                      validator: (val) => val!.isEmpty ? 'Required' : null,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _timeLimitController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Quiz Time (sec)', border: OutlineInputBorder()),
+                      validator: (val) => val!.isEmpty ? 'Required' : null,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               if (_selectedType == 'MCQ' || _selectedType == 'DRAG_DROP') ...[
@@ -138,6 +162,8 @@ class _CreateQuestionScreenState extends State<CreateQuestionScreen> {
         type: _selectedType,
         options: _optionControllers.map((c) => c.text).toList(),
         correctIndex: _correctIndex,
+        marks: int.parse(_marksController.text),
+        timeLimit: int.parse(_timeLimitController.text),
       );
       await ApiService.createQuestion(question);
       if (mounted) {

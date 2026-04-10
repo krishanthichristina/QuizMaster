@@ -32,6 +32,15 @@ class _QuizScreenState extends State<QuizScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    // Auto-submit when time is up
+    if (quizProvider.timeSpent >= quizProvider.totalTimeLimit && !quizProvider.isQuizFinished) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        quizProvider.stopTimer();
+        if (user != null) quizProvider.submitResult(user.id);
+        _showResultDialog(quizProvider, timeout: true);
+      });
+    }
+
     if (quizProvider.questions.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Quiz')),
@@ -54,7 +63,16 @@ class _QuizScreenState extends State<QuizScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Center(child: Text('${quizProvider.timeSpent}s', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            child: Center(
+              child: Text(
+                '${quizProvider.timeSpent} / ${quizProvider.totalTimeLimit}s',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: quizProvider.timeSpent >= quizProvider.totalTimeLimit ? Colors.red : Colors.white,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -69,7 +87,17 @@ class _QuizScreenState extends State<QuizScreen> {
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.indigo),
             ),
             const SizedBox(height: 24),
-            Text('Question ${quizProvider.currentIndex + 1} of ${quizProvider.questions.length}', style: TextStyle(fontSize: 16, color: Colors.grey.shade600)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Question ${quizProvider.currentIndex + 1} of ${quizProvider.questions.length}', style: TextStyle(fontSize: 16, color: Colors.grey.shade600)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: Colors.indigo.shade100, borderRadius: BorderRadius.circular(8)),
+                  child: Text('${question.marks} Marks', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             Text(question.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 32),
@@ -155,17 +183,17 @@ class _QuizScreenState extends State<QuizScreen> {
         break;
       }
     }
-    
+
     // Simulate correctIndex check
     _handleAnswer(quizProvider, isCorrect ? question.correctIndex : -1, userId);
   }
 
-  void _showResultDialog(QuizProvider quizProvider) {
+  void _showResultDialog(QuizProvider quizProvider, {bool timeout = false}) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Quiz Completed!'),
+        title: Text(timeout ? 'Time is Up!' : 'Quiz Completed!'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

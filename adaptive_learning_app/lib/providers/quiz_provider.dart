@@ -11,10 +11,13 @@ class QuizProvider with ChangeNotifier {
   int _correctAnswers = 0;
   bool _isLoading = false;
   String _difficulty = 'easy';
-  
+
   // Timer state
   int _timeSpent = 0;
+  int _totalTimeLimit = 60; // Default 60 seconds
   Timer? _timer;
+
+  int get totalTimeLimit => _totalTimeLimit;
 
   List<Question> get questions => _questions;
   int get currentIndex => _currentIndex;
@@ -35,6 +38,11 @@ class QuizProvider with ChangeNotifier {
 
     try {
       _questions = await ApiService.getQuestions(difficulty);
+      if (_questions.isNotEmpty) {
+        // Set total quiz time limit based on the first question's limit (or a default)
+        // For a more robust system, each question could have its own time, but here we use a per-quiz limit
+        _totalTimeLimit = _questions[0].timeLimit;
+      }
       startTimer();
     } catch (e) {
       rethrow;
@@ -48,6 +56,10 @@ class QuizProvider with ChangeNotifier {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _timeSpent++;
+      if (_timeSpent >= _totalTimeLimit) {
+        stopTimer();
+        // Auto-submit logic can be triggered from UI when time ends
+      }
       notifyListeners();
     });
   }
@@ -59,11 +71,10 @@ class QuizProvider with ChangeNotifier {
   void answerQuestion(int selectedIndex) {
     if (_questions[_currentIndex].correctIndex == selectedIndex) {
       _correctAnswers++;
-      // Simple adaptive scoring: harder questions give more points
-      int basePoints = _difficulty == 'easy' ? 10 : (_difficulty == 'medium' ? 20 : 30);
-      _score += basePoints;
+      // Use marks set by lecturer
+      _score += _questions[_currentIndex].marks;
     }
-    
+
     if (_currentIndex < _questions.length - 1) {
       _currentIndex++;
     } else {

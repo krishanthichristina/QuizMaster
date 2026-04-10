@@ -7,5 +7,6 @@ public class QuestionService {
   public List<Map<String, Object>> getQuestionsByDifficulty(String difficulty) {
     return repository.findByDifficultyIgnoreCase(difficulty).stream().map(this::toMap).collect(Collectors.toList());
   }
-  private Map<String, Object> toMap(Question q) { return Map.of("id", q.getId(), "difficulty", q.getDifficulty(), "title", q.getTitle(), "type", q.getType() != null ? q.getType() : "MCQ", "options", List.of(q.getOptionA() != null ? q.getOptionA() : "", q.getOptionB() != null ? q.getOptionB() : "", q.getOptionC() != null ? q.getOptionC() : "", q.getOptionD() != null ? q.getOptionD() : ""), "correctIndex", q.getCorrectIndex()); }
+  private Map<String, Object> toMap(Question q) { return Map.of("id", q.getId(), "difficulty", q.getDifficulty(), "title", q.getTitle(), "type", q.getType() != null ? q.getType() : "MCQ", "marks", q.getMarks() != null ? q.getMarks() : 1, "timeLimit", q.getTimeLimit() != null ? q.getTimeLimit() : 60, "options", List.of(q.getOptionA() != null ? q.getOptionA() : "", q.getOptionB() != null ? q.getOptionB() : "", q.getOptionC() != null ? q.getOptionC() : "", q.getOptionD() != null ? q.getOptionD() : ""), "correctIndex", q.getCorrectIndex()); }
 }
+
