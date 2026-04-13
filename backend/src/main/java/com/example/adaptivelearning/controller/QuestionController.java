@@ -21,10 +21,7 @@ public class QuestionController {
     }
 
     // ✅ Get questions by difficulty
-    @GetMapping
-    public List<Map<String, Object>> getQuestions(@RequestParam(defaultValue = "easy") String difficulty) {
-        return service.getQuestionsByDifficulty(difficulty);
-    }
+   
 
     // ✅ Create a question and return updated list
     @PostMapping
@@ -35,4 +32,10 @@ public class QuestionController {
         // Return the full updated list of questions
         return service.getQuestionsByDifficulty(question.getDifficulty());
     }
+
+    @GetMapping
+public List<Map<String, Object>> getQuestions(
+        @RequestParam(defaultValue = "easy") String difficulty) {
+    return service.getQuestionsByDifficulty(difficulty);
+}
 }

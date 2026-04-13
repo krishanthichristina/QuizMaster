@@ -15,16 +15,21 @@ class QuizProvider with ChangeNotifier {
     // Group results by topic (using question type as topic proxy)
     final Map<String, List<Result>> resultsByTopic = {};
     for (var result in userResults) {
-      resultsByTopic.putIfAbsent(result.difficulty, () => []).add(result);
+      resultsByTopic.putIfAbsent(result.type, () => []).add(result);
     }
+    // 🛑 SAFETY CHECK (IMPORTANT)
+if (resultsByTopic.isEmpty) {
+  return allQuestions.take(numQuestions).toList();
+}
 
     // Calculate average score per topic
     final topicScores = resultsByTopic.map((topic, results) {
-      final avgScore = results.isNotEmpty
-          ? results.map((r) => r.score).reduce((a, b) => a + b) / results.length
-          : 0.0;
-      return MapEntry(topic, avgScore);
-    });
+  final accuracy = results.isNotEmpty
+      ? results.where((r) => r.correctAnswers > 0).length / results.length
+      : 0.0;
+
+  return MapEntry(topic, accuracy);
+});
 
     // Sort topics by weakest (lowest average score) first
     final sortedTopics = topicScores.keys.toList()
@@ -52,9 +57,11 @@ class QuizProvider with ChangeNotifier {
       String targetDifficulty = difficulties[targetIdx];
 
       // Select questions from this topic and target difficulty
-      final candidates = allQuestions
-          .where((q) => q.difficulty == targetDifficulty && q.type == topic)
-          .toList();
+      final candidates = allQuestions.where((q) =>
+    q.type.toLowerCase() == topic.toLowerCase() &&
+    (q.difficulty.toLowerCase() == targetDifficulty.toLowerCase() ||
+     q.difficulty.toLowerCase() == comfortDifficulty.toLowerCase())
+).toList();
       candidates.shuffle();
       selected.addAll(candidates.take(numQuestions - selected.length));
       if (selected.length >= numQuestions) break;
@@ -92,36 +99,38 @@ class QuizProvider with ChangeNotifier {
   String get difficulty => _difficulty;
   int get timeSpent => _timeSpent;
 
-  Future<void> startQuizAdaptive(
-      {required int userId, int numQuestions = 10}) async {
-    _isLoading = true;
-    _currentIndex = 0;
-    _score = 0;
-    _correctAnswers = 0;
-    _timeSpent = 0;
-    notifyListeners();
+  Future<void> startQuizAdaptive({required int userId, int numQuestions = 10}) async {
+  _isLoading = true;
+  _currentIndex = 0;
+  _score = 0;
+  _correctAnswers = 0;
+  _timeSpent = 0;
 
-    try {
-      // Fetch all questions and user history
-      final allQuestions = await ApiService.getQuestions('all');
-      final userResults = await ApiService.getHistory(userId);
-      // Select adaptive questions
-      _questions = selectAdaptiveQuestions(
-        allQuestions: allQuestions,
-        userResults: userResults,
-        numQuestions: numQuestions,
-      );
-      if (_questions.isNotEmpty) {
-        _totalTimeLimit = _questions[0].timeLimit;
-      }
-      startTimer();
-    } catch (e) {
-      rethrow;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+  notifyListeners();
+
+  try {
+    // 1. Get adaptive difficulty from backend
+    final nextDifficulty = await ApiService.getNextDifficulty(userId);
+
+    _difficulty = nextDifficulty;
+
+    // 2. Load only that difficulty questions
+    final questions = await ApiService.getQuestions(nextDifficulty);
+
+    _questions = questions.take(numQuestions).toList();
+
+    if (_questions.isNotEmpty) {
+      _totalTimeLimit = _questions[0].timeLimit;
     }
+
+    startTimer();
+  } catch (e) {
+    rethrow;
+  } finally {
+    _isLoading = false;
+    notifyListeners();
   }
+}
 
   void startTimer() {
     _timer?.cancel();
@@ -158,16 +167,18 @@ class QuizProvider with ChangeNotifier {
       _currentIndex >= _questions.length - 1 && _timer?.isActive == false;
 
   Future<void> submitResult(int userId) async {
-    final result = Result(
-      userId: userId,
-      difficulty: _difficulty,
-      score: _score,
-      totalQuestions: _questions.length,
-      correctAnswers: _correctAnswers,
-      timeSpentSeconds: _timeSpent,
-    );
-    await ApiService.saveResult(result);
-  }
+  final result = Result(
+    userId: userId,
+    difficulty: _difficulty,
+    type: _questions.isNotEmpty ? _questions[0].type : 'MCQ',
+    score: _score,
+    totalQuestions: _questions.length,
+    correctAnswers: _correctAnswers,
+    timeSpentSeconds: _timeSpent,
+  );
+
+  await ApiService.saveResult(result);
+}
 
   @override
   void dispose() {
