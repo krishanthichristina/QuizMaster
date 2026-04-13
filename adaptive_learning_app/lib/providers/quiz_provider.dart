@@ -5,6 +5,71 @@ import '../models/result_model.dart';
 import '../services/api_service.dart';
 
 class QuizProvider with ChangeNotifier {
+  /// Selects adaptive questions based on user's past results.
+  /// Prioritizes weakest topics and increases difficulty gradually.
+  List<Question> selectAdaptiveQuestions({
+    required List<Question> allQuestions,
+    required List<Result> userResults,
+    int numQuestions = 10,
+  }) {
+    // Group results by topic (using question type as topic proxy)
+    final Map<String, List<Result>> resultsByTopic = {};
+    for (var result in userResults) {
+      resultsByTopic.putIfAbsent(result.difficulty, () => []).add(result);
+    }
+
+    // Calculate average score per topic
+    final topicScores = resultsByTopic.map((topic, results) {
+      final avgScore = results.isNotEmpty
+          ? results.map((r) => r.score).reduce((a, b) => a + b) / results.length
+          : 0.0;
+      return MapEntry(topic, avgScore);
+    });
+
+    // Sort topics by weakest (lowest average score) first
+    final sortedTopics = topicScores.keys.toList()
+      ..sort((a, b) => topicScores[a]!.compareTo(topicScores[b]!));
+
+    List<Question> selected = [];
+    for (var topic in sortedTopics) {
+      final topicResults = resultsByTopic[topic]!;
+      // Estimate comfort difficulty as most frequent difficulty in past results
+      final difficultyCounts = <String, int>{};
+      for (var r in topicResults) {
+        difficultyCounts[r.difficulty] =
+            (difficultyCounts[r.difficulty] ?? 0) + 1;
+      }
+      String comfortDifficulty = difficultyCounts.entries.isNotEmpty
+          ? (difficultyCounts.entries.toList()
+                ..sort((a, b) => b.value.compareTo(a.value)))[0]
+              .key
+          : 'easy';
+
+      // Define difficulty progression order
+      final difficulties = ['easy', 'medium', 'hard'];
+      int comfortIdx = difficulties.indexOf(comfortDifficulty);
+      int targetIdx = (comfortIdx + 1).clamp(0, difficulties.length - 1);
+      String targetDifficulty = difficulties[targetIdx];
+
+      // Select questions from this topic and target difficulty
+      final candidates = allQuestions
+          .where((q) => q.difficulty == targetDifficulty && q.type == topic)
+          .toList();
+      candidates.shuffle();
+      selected.addAll(candidates.take(numQuestions - selected.length));
+      if (selected.length >= numQuestions) break;
+    }
+
+    // Fill up with random questions if needed
+    if (selected.length < numQuestions) {
+      final remaining =
+          allQuestions.where((q) => !selected.contains(q)).toList()..shuffle();
+      selected.addAll(remaining.take(numQuestions - selected.length));
+    }
+
+    return selected.take(numQuestions).toList();
+  }
+
   List<Question> _questions = [];
   int _currentIndex = 0;
   int _score = 0;
@@ -27,8 +92,8 @@ class QuizProvider with ChangeNotifier {
   String get difficulty => _difficulty;
   int get timeSpent => _timeSpent;
 
-  Future<void> startQuiz(String difficulty) async {
-    _difficulty = difficulty;
+  Future<void> startQuizAdaptive(
+      {required int userId, int numQuestions = 10}) async {
     _isLoading = true;
     _currentIndex = 0;
     _score = 0;
@@ -37,10 +102,16 @@ class QuizProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _questions = await ApiService.getQuestions(difficulty);
+      // Fetch all questions and user history
+      final allQuestions = await ApiService.getQuestions('all');
+      final userResults = await ApiService.getHistory(userId);
+      // Select adaptive questions
+      _questions = selectAdaptiveQuestions(
+        allQuestions: allQuestions,
+        userResults: userResults,
+        numQuestions: numQuestions,
+      );
       if (_questions.isNotEmpty) {
-        // Set total quiz time limit based on the first question's limit (or a default)
-        // For a more robust system, each question could have its own time, but here we use a per-quiz limit
         _totalTimeLimit = _questions[0].timeLimit;
       }
       startTimer();
@@ -83,7 +154,8 @@ class QuizProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool get isQuizFinished => _currentIndex >= _questions.length - 1 && _timer?.isActive == false;
+  bool get isQuizFinished =>
+      _currentIndex >= _questions.length - 1 && _timer?.isActive == false;
 
   Future<void> submitResult(int userId) async {
     final result = Result(
