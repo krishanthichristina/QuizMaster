@@ -106,9 +106,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             context,
                             MaterialPageRoute(builder: (context) => const RegisterScreen()),
                           );
+
                         },
                         child: const Text('Don\'t have an account? Register'),
                       ),
+
                     ],
                   ),
                 ),

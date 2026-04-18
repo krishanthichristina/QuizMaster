@@ -6,7 +6,9 @@ import '../services/api_service.dart';
 import '../models/result_model.dart';
 
 class AnalyticsScreen extends StatefulWidget {
-  const AnalyticsScreen({super.key});
+  final int? studentId; // optional
+
+  const AnalyticsScreen({super.key, this.studentId});
 
   @override
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
@@ -19,11 +21,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   void initState() {
     super.initState();
-    final user = Provider.of<AuthProvider>(context, listen: false).user;
-    if (user != null) {
-      _analyticsFuture = ApiService.getAnalytics(user.id);
-      _historyFuture = ApiService.getHistory(user.id);
-    }
+    final authUser = Provider.of<AuthProvider>(context, listen: false).user;
+
+    final idToUse = widget.studentId ?? authUser!.id;
+
+    _analyticsFuture = ApiService.getAnalytics(idToUse);
+    _historyFuture = ApiService.getHistory(idToUse);
   }
 
   @override
@@ -50,8 +53,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 return Row(
                   children: [
                     _buildStatCard('Total Quizzes', data['totalQuizzes'].toString(), Icons.quiz, Colors.blue),
-                    _buildStatCard('Average Score', data['averageScore'].toStringAsFixed(1), Icons.show_chart, Colors.green),
-                    _buildStatCard('Best Score', data['bestScore'].toString(), Icons.star, Colors.orange),
+                    _buildStatCard(
+                        'Average Score',
+                        ((data['averageAccuracy'] ?? 0) as num).toDouble().toStringAsFixed(1),
+                        Icons.show_chart,
+                        Colors.green
+                    ),
+                    _buildStatCard(
+                      'Best Score',
+                      (data['bestScore'] ?? 0).toString(),
+                      Icons.star,
+                      Colors.orange,
+                    ),
                   ],
                 );
               },
@@ -64,10 +77,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
                 if (!snapshot.hasData || snapshot.data!.isEmpty) return const SizedBox(height: 200, child: Center(child: Text('No data yet.')));
-                
+
                 final history = snapshot.data!;
                 final difficultyStats = _calculateDifficultyStats(history);
-                
+
                 return AspectRatio(
                   aspectRatio: 1.3,
                   child: BarChart(

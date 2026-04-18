@@ -5,8 +5,9 @@ import '../providers/auth_provider.dart';
 
 class QuizScreen extends StatefulWidget {
   final String difficulty;
+  final String? sessionId;
 
-  const QuizScreen({super.key, required this.difficulty});
+  const QuizScreen({super.key, required this.difficulty,this.sessionId,});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -19,7 +20,15 @@ class _QuizScreenState extends State<QuizScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<QuizProvider>(context, listen: false).startQuiz(widget.difficulty);
+      final user = Provider.of<AuthProvider>(context, listen: false).user;
+      final quizProvider = Provider.of<QuizProvider>(context, listen: false);
+
+      if (user != null) {
+        quizProvider.startQuizAdaptive(
+          userId: user.id,
+          sessionId: widget.sessionId, // ✔ ADD THIS
+        );
+      }
     });
   }
 
@@ -33,7 +42,8 @@ class _QuizScreenState extends State<QuizScreen> {
     }
 
     // Auto-submit when time is up
-    if (quizProvider.timeSpent >= quizProvider.totalTimeLimit && !quizProvider.isQuizFinished) {
+    if (quizProvider.timeSpent >= quizProvider.totalTimeLimit &&
+        !quizProvider.isQuizFinished) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         quizProvider.stopTimer();
         if (user != null) quizProvider.submitResult(user.id);
@@ -44,7 +54,8 @@ class _QuizScreenState extends State<QuizScreen> {
     if (quizProvider.questions.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Quiz')),
-        body: const Center(child: Text('No questions found for this difficulty.')),
+        body: const Center(
+            child: Text('No questions found for this difficulty.')),
       );
     }
 
@@ -69,7 +80,9 @@ class _QuizScreenState extends State<QuizScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: quizProvider.timeSpent >= quizProvider.totalTimeLimit ? Colors.red : Colors.white,
+                  color: quizProvider.timeSpent >= quizProvider.totalTimeLimit
+                      ? Colors.red
+                      : Colors.white,
                 ),
               ),
             ),
@@ -82,7 +95,8 @@ class _QuizScreenState extends State<QuizScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             LinearProgressIndicator(
-              value: (quizProvider.currentIndex + 1) / quizProvider.questions.length,
+              value: (quizProvider.currentIndex + 1) /
+                  quizProvider.questions.length,
               backgroundColor: Colors.grey.shade200,
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.indigo),
             ),
@@ -90,25 +104,42 @@ class _QuizScreenState extends State<QuizScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Question ${quizProvider.currentIndex + 1} of ${quizProvider.questions.length}', style: TextStyle(fontSize: 16, color: Colors.grey.shade600)),
+                Text(
+                    'Question ${quizProvider.currentIndex + 1} of ${quizProvider.questions.length}',
+                    style:
+                    TextStyle(fontSize: 16, color: Colors.grey.shade600)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.indigo.shade100, borderRadius: BorderRadius.circular(8)),
-                  child: Text('${question.marks} Marks', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: Colors.indigo.shade100,
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Text('${question.marks} Marks',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.indigo)),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Text(question.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(question.title,
+                style:
+                const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 32),
             Expanded(
-              child: question.type == 'DRAG_DROP' ? _buildDragDrop(question) : _buildMultipleChoice(question, quizProvider, user?.id),
+              child: question.type == 'DRAG_DROP'
+                  ? _buildDragDrop(question)
+                  : _buildMultipleChoice(question, quizProvider, user?.id),
             ),
             if (question.type == 'DRAG_DROP')
               ElevatedButton(
-                onPressed: () => _handleDragDropSubmit(quizProvider, question, user?.id),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white, padding: const EdgeInsets.all(16)),
-                child: const Text('Submit Order', style: TextStyle(fontSize: 18)),
+                onPressed: () =>
+                    _handleDragDropSubmit(quizProvider, question, user?.id),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.all(16)),
+                child:
+                const Text('Submit Order', style: TextStyle(fontSize: 18)),
               ),
           ],
         ),
@@ -130,9 +161,11 @@ class _QuizScreenState extends State<QuizScreen> {
               backgroundColor: Colors.white,
               foregroundColor: Colors.indigo,
               side: const BorderSide(color: Colors.indigo),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
-            child: Text(question.options[index], style: const TextStyle(fontSize: 18)),
+            child: Text(question.options[index],
+                style: const TextStyle(fontSize: 18)),
           ),
         );
       },
@@ -157,7 +190,8 @@ class _QuizScreenState extends State<QuizScreen> {
               color: Colors.indigo.shade50,
               child: ListTile(
                 leading: const Icon(Icons.drag_handle),
-                title: Text(_draggedItems![i], style: const TextStyle(fontSize: 18)),
+                title: Text(_draggedItems![i],
+                    style: const TextStyle(fontSize: 18)),
               ),
             ),
       ],
@@ -167,7 +201,8 @@ class _QuizScreenState extends State<QuizScreen> {
   void _handleAnswer(QuizProvider quizProvider, int index, int? userId) {
     quizProvider.answerQuestion(index);
     _draggedItems = null; // Reset for next question
-    if (quizProvider.currentIndex >= quizProvider.questions.length - 1 && quizProvider.isQuizFinished) {
+    if (quizProvider.currentIndex >= quizProvider.questions.length - 1 &&
+        quizProvider.isQuizFinished) {
       if (userId != null) quizProvider.submitResult(userId);
       _showResultDialog(quizProvider);
     }
@@ -199,12 +234,24 @@ class _QuizScreenState extends State<QuizScreen> {
           children: [
             const Icon(Icons.emoji_events, size: 80, color: Colors.amber),
             const SizedBox(height: 16),
-            Text('Score: ${quizProvider.score}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            Text('Correct: ${quizProvider.correctAnswers}/${quizProvider.questions.length}', style: const TextStyle(fontSize: 18)),
-            Text('Time: ${quizProvider.timeSpent}s', style: const TextStyle(fontSize: 18)),
+            Text('Score: ${quizProvider.score}',
+                style:
+                const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(
+                'Correct: ${quizProvider.correctAnswers}/${quizProvider.questions.length}',
+                style: const TextStyle(fontSize: 18)),
+            Text('Time: ${quizProvider.timeSpent}s',
+                style: const TextStyle(fontSize: 18)),
           ],
         ),
-        actions: [TextButton(onPressed: () { Navigator.pop(context); Navigator.pop(context); }, child: const Text('OK'))],
+        actions: [
+          TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: const Text('OK'))
+        ],
       ),
     );
   }

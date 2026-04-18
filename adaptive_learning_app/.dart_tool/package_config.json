@@ -32,6 +32,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "crypto",
+      "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/crypto-3.0.7",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "cupertino_icons",
       "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/cupertino_icons-1.0.9",
       "packageUri": "lib/",
@@ -60,6 +66,12 @@
       "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/file-7.0.1",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "fixnum",
+      "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/fixnum-1.1.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
     },
     {
       "name": "fl_chart",
@@ -152,6 +164,12 @@
       "languageVersion": "3.5"
     },
     {
+      "name": "mobile_scanner",
+      "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/mobile_scanner-5.2.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "nested",
       "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/nested-1.0.0",
       "packageUri": "lib/",
@@ -198,6 +216,18 @@
       "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/provider-6.1.5+1",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "qr",
+      "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/qr-3.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "qr_flutter",
+      "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/qr_flutter-4.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.19"
     },
     {
       "name": "shared_preferences",
@@ -290,6 +320,12 @@
       "languageVersion": "3.5"
     },
     {
+      "name": "uuid",
+      "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/uuid-4.5.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "vector_math",
       "rootUri": "file:///C:/Users/Dell/AppData/Local/Pub/Cache/hosted/pub.dev/vector_math-2.2.0",
       "packageUri": "lib/",
@@ -323,6 +359,6 @@
   "generator": "pub",
   "generatorVersion": "3.10.7",
   "flutterRoot": "file:///C:/flutter",
-  "flutterVersion": "3.38.7",
+  "flutterVersion": "3.41.6",
   "pubCache": "file:///C:/Users/Dell/AppData/Local/Pub/Cache"
 }

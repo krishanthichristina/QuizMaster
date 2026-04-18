@@ -7,11 +7,13 @@ class Result {
   final int correctAnswers;
   final int timeSpentSeconds;
   final DateTime? createdAt;
+  final String type;
 
   Result({
     this.id,
     required this.userId,
     required this.difficulty,
+    required this.type,
     required this.score,
     required this.totalQuestions,
     required this.correctAnswers,
@@ -20,22 +22,26 @@ class Result {
   });
 
   factory Result.fromJson(Map<String, dynamic> json) {
-    return Result(
-      id: json['id'],
-      userId: json['userId'],
-      difficulty: json['difficulty'],
-      score: json['score'],
-      totalQuestions: json['totalQuestions'],
-      correctAnswers: json['correctAnswers'],
-      timeSpentSeconds: json['timeSpentSeconds'],
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-    );
-  }
+  return Result(
+    id: json['id'],
+    userId: json['userId'],
+    difficulty: json['difficulty'] ?? 'easy',
+    type: json['type'] ?? 'MCQ',
+    score: json['score'] ?? 0,
+    totalQuestions: json['totalQuestions'] ?? 0,
+    correctAnswers: json['correctAnswers'] ?? 0,
+    timeSpentSeconds: json['timeSpentSeconds'] ?? 0,
+    createdAt: json['createdAt'] != null
+        ? DateTime.parse(json['createdAt'])
+        : null,
+  );
+}
 
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,
       'difficulty': difficulty,
+      'type': type,
       'score': score,
       'totalQuestions': totalQuestions,
       'correctAnswers': correctAnswers,

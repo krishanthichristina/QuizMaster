@@ -62,6 +62,18 @@ class ApiService {
       throw Exception('Failed to create question: ${response.body}');
     }
   }
+
+  static Future<String> getNextDifficulty(int userId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/next-difficulty/$userId'),
+    );
+
+    if (response.statusCode == 200) {
+      return response.body.replaceAll('"', '');
+    } else {
+      throw Exception('Failed to get next difficulty');
+    }
+  }
   // Results
   static Future<Result> saveResult(Result result) async {
     final response = await http.post(
@@ -95,6 +107,28 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to load analytics');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getSession(String sessionId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/session/$sessionId'),
+    );
+
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Invalid session response');
+    }
+
+  }
+  static Future<List<dynamic>> getAllStudents() async {
+    final response = await http.get(Uri.parse('$baseUrl/users/students'));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load students');
     }
   }
 }
