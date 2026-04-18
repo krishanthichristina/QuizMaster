@@ -1,4 +1,7 @@
-INSERT INTO users(name, email, password) VALUES ('Alice', 'alice@example.com', 'password123');
+INSERT INTO users(name, email, password,role) VALUES ('Alice', 'alice@example.com', 'password123','student'),
+('Sajiya','s@gmail.com',123,'lecturer'),
+('fathima','f@gmail.com',123,'student');
+
 INSERT INTO questions(difficulty, title, option_a, option_b, option_c, option_d, correct_index) VALUES
 ('easy', 'What is 2 + 2?', '3', '4', '5', '6', 1),
 ('easy', 'Which planet is known as the Red Planet?', 'Earth', 'Mars', 'Jupiter', 'Venus', 1),
