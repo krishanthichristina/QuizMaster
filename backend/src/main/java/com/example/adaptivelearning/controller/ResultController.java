@@ -41,4 +41,5 @@ public String nextDifficulty(@PathVariable Long userId) {
 public Map<String, Object> getStudentAnalytics(@PathVariable Long studentId) {
     return service.analytics(studentId);
 }
+
 }

@@ -97,13 +97,10 @@ public class ResultService {
 
         if (results.isEmpty()) return "easy";
 
-        List<Result> recent = results.stream()
-                .limit(5)
-                .collect(Collectors.toList());
+        List<Result> recent = results.stream().limit(5).toList();
 
         double avgAccuracy = recent.stream()
-                .mapToDouble(r -> r.getTotalQuestions() == 0 ? 0 :
-                        (r.getCorrectAnswers() * 100.0) / r.getTotalQuestions())
+                .mapToDouble(r -> (r.getCorrectAnswers() * 100.0) / r.getTotalQuestions())
                 .average()
                 .orElse(0);
 
