@@ -1,0 +1,7 @@
+package com.example.adaptivelearning;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+@SpringBootApplication
+public class AdaptiveLearningApiApplication {
+  public static void main(String[] args) { SpringApplication.run(AdaptiveLearningApiApplication.class, args); }
+}

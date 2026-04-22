@@ -1,0 +1,16 @@
+com\example\adaptivelearning\repository\QuestionRepository.class
+com\example\adaptivelearning\service\AuthService.class
+com\example\adaptivelearning\controller\GlobalExceptionHandler.class
+com\example\adaptivelearning\controller\QuestionController.class
+com\example\adaptivelearning\model\Question.class
+com\example\adaptivelearning\repository\AppUserRepository.class
+com\example\adaptivelearning\model\Result.class
+com\example\adaptivelearning\dto\AuthRequest.class
+com\example\adaptivelearning\service\ResultService.class
+com\example\adaptivelearning\AdaptiveLearningApiApplication.class
+com\example\adaptivelearning\service\QuestionService.class
+com\example\adaptivelearning\controller\ResultController.class
+com\example\adaptivelearning\repository\ResultRepository.class
+com\example\adaptivelearning\dto\ResultRequest.class
+com\example\adaptivelearning\model\AppUser.class
+com\example\adaptivelearning\controller\AuthController.class
