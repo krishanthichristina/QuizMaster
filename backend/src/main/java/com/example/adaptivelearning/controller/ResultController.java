@@ -36,4 +36,10 @@ public class ResultController {
 public String nextDifficulty(@PathVariable Long userId) {
     return service.getNextDifficulty(userId);
 }
+
+@GetMapping("/analytics/student/{studentId}")
+public Map<String, Object> getStudentAnalytics(@PathVariable Long studentId) {
+    return service.analytics(studentId);
+}
+
 }

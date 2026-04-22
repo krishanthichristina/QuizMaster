@@ -1,9 +1,11 @@
+import 'package:adaptive_learning_app/screens/qr_generate_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'quiz_screen.dart';
 import 'analytics_screen.dart';
 import 'create_quiz_screen.dart';
+import 'student_list_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -48,7 +50,7 @@ class HomeScreen extends StatelessWidget {
             'Add MCQ, T/F, or Drag & Drop questions',
             Icons.add_circle_outline,
             Colors.indigo,
-            () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateQuestionScreen())),
+                () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateQuestionScreen())),
           ),
           _buildActionCard(
             context,
@@ -56,7 +58,10 @@ class HomeScreen extends StatelessWidget {
             'Monitor overall student progress',
             Icons.analytics_outlined,
             Colors.green,
-            () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AnalyticsScreen())),
+                () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const StudentListScreen()),
+            ),
           ),
         ],
       ),
@@ -79,6 +84,18 @@ class HomeScreen extends StatelessWidget {
           _buildDifficultyCard(context, 'Easy', 'Perfect for beginners', Icons.sentiment_satisfied, Colors.green),
           _buildDifficultyCard(context, 'Medium', 'Test your intermediate skills', Icons.sentiment_neutral, Colors.orange),
           _buildDifficultyCard(context, 'Hard', 'Only for the experts!', Icons.sentiment_very_dissatisfied, Colors.red),
+
+          _buildActionCard(
+            context,
+            'Generate QR Session',
+            'Create quiz session QR',
+            Icons.qr_code,
+            Colors.blue,
+                () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const QRGenerateScreen()),
+            ),
+          ),
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,

@@ -6,6 +6,9 @@ import com.example.adaptivelearning.repository.ResultRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class ResultService {
@@ -16,6 +19,7 @@ public class ResultService {
         this.repository = repository;
     }
 
+    // SAVE RESULT
     public Result save(ResultRequest request) {
         Result result = new Result(
                 request.getUserId(),
@@ -29,10 +33,64 @@ public class ResultService {
         return repository.save(result);
     }
 
+    // GET USER HISTORY
     public List<Result> history(Long userId) {
         return repository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
+    // ANALYTICS (FIXED & PROPERLY PLACED)
+    public Map<String, Object> analytics(Long userId) {
+
+        List<Result> results = repository.findByUserIdOrderByCreatedAtDesc(userId);
+
+        Map<String, Object> data = new HashMap<>();
+
+        if (results.isEmpty()) {
+            data.put("totalQuizzes", 0);
+            data.put("averageAccuracy", 0);
+            data.put("recentAccuracy", 0);
+            data.put("latestDifficulty", "easy");
+            return data;
+        }
+
+        int totalQuizzes = results.size();
+
+        // ⚠️ Safe accuracy calculation
+        double avgAccuracy = results.stream()
+                .mapToDouble(r -> r.getTotalQuestions() == 0 ? 0 :
+                        (r.getCorrectAnswers() * 100.0) / r.getTotalQuestions())
+                .average()
+                .orElse(0);
+
+        String latestDifficulty = results.get(0).getDifficulty();
+
+        // Java 8 compatible (instead of toList())
+        List<Result> recent = results.stream()
+                .limit(5)
+                .collect(Collectors.toList());
+
+        double recentAccuracy = recent.stream()
+                .mapToDouble(r -> r.getTotalQuestions() == 0 ? 0 :
+                        (r.getCorrectAnswers() * 100.0) / r.getTotalQuestions())
+                .average()
+                .orElse(0);
+
+        double bestScore = results.stream()
+        .mapToDouble(Result::getScore)
+        .max()
+        .orElse(0);
+
+
+        data.put("totalQuizzes", totalQuizzes);
+        data.put("averageAccuracy", avgAccuracy);
+        data.put("recentAccuracy", recentAccuracy);
+        data.put("bestScore", bestScore);
+        data.put("latestDifficulty", latestDifficulty);
+
+        return data;
+    }
+
+    // ADAPTIVE DIFFICULTY
     public String getNextDifficulty(Long userId) {
 
         List<Result> results = repository.findByUserIdOrderByCreatedAtDesc(userId);

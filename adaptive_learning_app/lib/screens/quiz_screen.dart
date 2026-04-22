@@ -5,8 +5,9 @@ import '../providers/auth_provider.dart';
 
 class QuizScreen extends StatefulWidget {
   final String difficulty;
+  final String? sessionId;
 
-  const QuizScreen({super.key, required this.difficulty});
+  const QuizScreen({super.key, required this.difficulty,this.sessionId,});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -20,6 +21,13 @@ class _QuizScreenState extends State<QuizScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
+      final quizProvider = Provider.of<QuizProvider>(context, listen: false);
+
+      if (user != null) {
+        quizProvider.startQuizAdaptive(
+          userId: user.id,
+          sessionId: widget.sessionId, // ✔ ADD THIS
+        );
       if (user != null) {
         Provider.of<QuizProvider>(context, listen: false)
             .startQuizAdaptive(userId: user.id);
@@ -102,6 +110,10 @@ class _QuizScreenState extends State<QuizScreen> {
                 Text(
                     'Question ${quizProvider.currentIndex + 1} of ${quizProvider.questions.length}',
                     style:
+                    TextStyle(fontSize: 16, color: Colors.grey.shade600)),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         TextStyle(fontSize: 16, color: Colors.grey.shade600)),
                 Container(
                   padding:
@@ -118,6 +130,7 @@ class _QuizScreenState extends State<QuizScreen> {
             const SizedBox(height: 16),
             Text(question.title,
                 style:
+                const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                     const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 32),
             Expanded(
@@ -134,6 +147,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.all(16)),
                 child:
+                const Text('Submit Order', style: TextStyle(fontSize: 18)),
                     const Text('Submit Order', style: TextStyle(fontSize: 18)),
               ),
           ],

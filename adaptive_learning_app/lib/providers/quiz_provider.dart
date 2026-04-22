@@ -17,6 +17,7 @@ class QuizProvider with ChangeNotifier {
     for (var result in userResults) {
       resultsByTopic.putIfAbsent(result.type, () => []).add(result);
     }
+    // SAFETY CHECK (IMPORTANT)
     // 🛑 SAFETY CHECK (IMPORTANT)
 if (resultsByTopic.isEmpty) {
   return allQuestions.take(numQuestions).toList();
