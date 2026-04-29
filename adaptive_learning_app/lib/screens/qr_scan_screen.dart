@@ -23,20 +23,31 @@ class _QRScanScreenState extends State<QRScanScreen> {
             if (scanned) return;
 
             final barcode = capture.barcodes.first;
-            if (barcode.rawValue == null) return;
+            final value = barcode.rawValue;
+
+            if (value == null) return;
 
             setState(() => scanned = true);
 
-            final sessionId = barcode.rawValue!;
-            print("Scanned: $sessionId");
+            String sessionId = value;
+            if (value.startsWith("adaptivequiz://session/")) {
+              sessionId = value.replaceFirst("adaptivequiz://session/", "");
+            }
+
+            print("SCANNED SESSION: $sessionId");
 
             try {
               final res = await http.get(
-                Uri.parse("http://10.163.47.128:8080/api/session"),
+                Uri.parse("http://10.143.105.128:8080/api/session/$sessionId"),
               );
 
+              print("STATUS: ${res.statusCode}");
+              print("BODY: ${res.body}");
+
+              if (!mounted) return;
+
               if (res.statusCode == 200) {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (_) => QuizStartScreen(sessionId: sessionId),
@@ -46,19 +57,19 @@ class _QRScanScreenState extends State<QRScanScreen> {
                 setState(() => scanned = false);
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Session not valid")),
+                  SnackBar(content: Text("Session not found: ${res.statusCode}")),
                 );
               }
             } catch (e) {
               setState(() => scanned = false);
 
+              print("ERROR: $e");
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Server error")),
               );
             }
-
-
-        },
+          },
       ),
     );
   }

@@ -5,7 +5,7 @@ import '../models/question_model.dart';
 import '../models/result_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = 'http://10.143.105.128:8080/api';
 
   // Auth
   static Future<User> login(String email, String password) async {
@@ -74,16 +74,6 @@ class ApiService {
       throw Exception('Failed to get next difficulty');
     }
   }
-  final response = await http.get(
-    Uri.parse('$baseUrl/next-difficulty/$userId'),
-  );
-
-  if (response.statusCode == 200) {
-    return response.body.replaceAll('"', '');
-  } else {
-    throw Exception('Failed to get next difficulty');
-  }
-}
   // Results
   static Future<Result> saveResult(Result result) async {
     final response = await http.post(
@@ -130,7 +120,18 @@ class ApiService {
     } else {
       throw Exception('Invalid session response');
     }
+  }
 
+  static Future<List<dynamic>> getActiveSessions() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/sessions/active'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
   }
   static Future<List<dynamic>> getAllStudents() async {
     final response = await http.get(Uri.parse('$baseUrl/users/students'));

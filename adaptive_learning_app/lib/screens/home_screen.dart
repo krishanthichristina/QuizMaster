@@ -1,11 +1,16 @@
 import 'package:adaptive_learning_app/screens/qr_generate_screen.dart';
+import 'package:adaptive_learning_app/screens/quiz_start_screen.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
 import 'quiz_screen.dart';
 import 'analytics_screen.dart';
 import 'create_quiz_screen.dart';
 import 'student_list_screen.dart';
+import 'package:adaptive_learning_app/screens/qr_scan_screen.dart';
+import '../utils/session_store.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -63,6 +68,17 @@ class HomeScreen extends StatelessWidget {
               MaterialPageRoute(builder: (context) => const StudentListScreen()),
             ),
           ),
+          _buildActionCard(
+            context,
+            'Generate QR Session',
+            'Create quiz session QR',
+            Icons.qr_code,
+            Colors.blue,
+                () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const QRGenerateScreen()),
+            ),
+          ),
         ],
       ),
     );
@@ -75,39 +91,126 @@ class HomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 20),
+
           Text(
             'Hello, ${name ?? 'Learner'}!',
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.indigo),
-          ),
-          const Text('Ready to challenge yourself today?', style: TextStyle(fontSize: 18, color: Colors.grey)),
-          const SizedBox(height: 30),
-          _buildDifficultyCard(context, 'Easy', 'Perfect for beginners', Icons.sentiment_satisfied, Colors.green),
-          _buildDifficultyCard(context, 'Medium', 'Test your intermediate skills', Icons.sentiment_neutral, Colors.orange),
-          _buildDifficultyCard(context, 'Hard', 'Only for the experts!', Icons.sentiment_very_dissatisfied, Colors.red),
-
-          _buildActionCard(
-            context,
-            'Generate QR Session',
-            'Create quiz session QR',
-            Icons.qr_code,
-            Colors.blue,
-                () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const QRGenerateScreen()),
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.indigo,
             ),
           ),
+
+          const Text(
+            'Ready to challenge yourself today?',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
+
+          const SizedBox(height: 30),
+
+          _buildDifficultyCard(context, 'Easy', 'Perfect for beginners',
+              Icons.sentiment_satisfied, Colors.green),
+          _buildDifficultyCard(context, 'Medium', 'Test your intermediate skills',
+              Icons.sentiment_neutral, Colors.orange),
+          _buildDifficultyCard(context, 'Hard', 'Only for the experts!',
+              Icons.sentiment_very_dissatisfied, Colors.red),
+
           const SizedBox(height: 20),
+
+          /// ✅ LIVE QR SECTION (FIXED)
+          FutureBuilder<List<dynamic>>(
+            future: ApiService.getActiveSessions(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const SizedBox();
+              }
+
+              final session = snapshot.data!.first;
+              final sessionId = session['sessionId'];
+
+              return Column(
+                children: [
+                  const Text(
+                    'Active Quiz Session',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.indigo,
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  QrImageView(
+                    data: "adaptivequiz://session/$sessionId",
+                    size: 200,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Text('Session ID: $sessionId'),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => QuizStartScreen(sessionId: sessionId),
+                        ),
+                      );
+                    },
+                    child: const Text("Join Active Session"),
+                  ),
+                ],
+              );
+            },
+          ),
+
+          const SizedBox(height: 20),
+
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AnalyticsScreen())),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const QRScanScreen()),
+                );
+              },
+              icon: const Icon(Icons.qr_code_scanner),
+              label: const Text('Scan QR to Join Session'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
+              ),
               icon: const Icon(Icons.bar_chart),
-              label: const Text('View My Performance', style: TextStyle(fontSize: 16)),
+              label: const Text('View My Performance'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.indigo,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
