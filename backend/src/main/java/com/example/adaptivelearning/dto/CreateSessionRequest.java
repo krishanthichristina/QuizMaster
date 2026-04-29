@@ -1,19 +1,8 @@
-package com.example.adaptivelearning.model;
+package com.example.adaptivelearning.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-
-@Entity
-public class QuizSession {
-
-    @Id
+public class CreateSessionRequest {
     private String sessionId;
-
     private String difficulty;
-
-    private boolean isActive; 
-
-   
 
     public String getSessionId() {
         return sessionId;
@@ -29,14 +18,5 @@ public class QuizSession {
 
     public void setDifficulty(String difficulty) {
         this.difficulty = difficulty;
-    }
-
-    // 🔥 IMPORTANT PART
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setIsActive(boolean isActive) { 
-        this.isActive = isActive;
     }
 }

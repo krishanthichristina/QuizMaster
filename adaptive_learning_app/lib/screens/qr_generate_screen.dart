@@ -12,52 +12,74 @@ class QRGenerateScreen extends StatefulWidget {
 }
 
 class _QRGenerateScreenState extends State<QRGenerateScreen> {
-  String sessionId = const Uuid().v4();
+  String? sessionId;
+  bool isLoading = false;
+
+  final String baseUrl = "http://10.163.47.128:8080";
+
+  Future<void> createSession() async {
+    setState(() => isLoading = true);
+
+    final newSessionId = const Uuid().v4();
+
+    try {
+      final res = await http.post(
+        Uri.parse("$baseUrl/api/session"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "sessionId": newSessionId,
+          "difficulty": "easy"
+        }),
+      );
+
+      if (res.statusCode == 200) {
+        setState(() {
+          sessionId = newSessionId;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to create session")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server error")),
+      );
+    }
+
+    setState(() => isLoading = false);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    createSession(); // ✅ auto-generate session
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Generate Quiz QR")),
       body: Center(
-        child: Column(
+        child: isLoading
+            ? const CircularProgressIndicator()
+            : sessionId == null
+            ? ElevatedButton(
+          onPressed: createSession,
+          child: const Text("Generate Session"),
+        )
+            : Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
             QrImageView(
-              data: 'http://10.163.47.128:8080/quiz?session=$sessionId',
+              data: sessionId!,
               size: 250,
             ),
-
-
             const SizedBox(height: 20),
-
             Text("Session: $sessionId"),
-
             const SizedBox(height: 20),
-
             ElevatedButton(
-              onPressed: () async {
-                final newSessionId = const Uuid().v4();
-
-                final res = await http.post(
-                  Uri.parse("http://localhost:8080/api/session"),
-                  headers: {"Content-Type": "application/json"},
-                  body: jsonEncode({
-                    "sessionId": newSessionId,
-                    "difficulty": "easy"
-                  }),
-                );
-
-                if (res.statusCode == 200) {
-                  setState(() {
-                    sessionId = newSessionId;
-                  });
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Failed to create session")),
-                  );
-                }
-              },
+              onPressed: createSession,
               child: const Text("Generate New Session"),
             ),
           ],
