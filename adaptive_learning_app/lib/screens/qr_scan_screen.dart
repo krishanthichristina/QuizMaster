@@ -1,4 +1,3 @@
-import 'package:adaptive_learning_app/screens/quiz_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'quiz_start_screen.dart';
@@ -24,57 +23,50 @@ class _QRScanScreenState extends State<QRScanScreen> {
             if (scanned) return;
 
             final barcode = capture.barcodes.first;
-            if (barcode.rawValue == null) return;
+            final value = barcode.rawValue;
+
+            if (value == null) return;
 
             setState(() => scanned = true);
 
-            final sessionId = barcode.rawValue!;
-            print("Scanned sessionId: $sessionId");
+            final sessionId = value;
+
+            print("SCANNED SESSION: $sessionId");
 
             try {
               final res = await http.get(
-                Uri.parse("http://10.163.47.128:8080/api/session/$sessionId"),
+                Uri.parse("http://10.143.105.128:8080/api/session/$sessionId"),
               );
 
+              print("STATUS: ${res.statusCode}");
+              print("BODY: ${res.body}");
+
+              if (!mounted) return;
+
               if (res.statusCode == 200) {
-                final data = jsonDecode(res.body);
-
-                //  CORE FEATURE
-                if (data['isActive'] == false) {
-                  setState(() => scanned = false);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Quiz not started")),
-                  );
-                  return;
-                }
-
-                // VALID SESSION → START QUIZ
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => QuizScreen(
-                      difficulty: data['difficulty'],
-                      sessionId: sessionId,
-                    ),
+                    builder: (_) => QuizStartScreen(sessionId: sessionId),
                   ),
                 );
-
               } else {
                 setState(() => scanned = false);
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Invalid session")),
+                  SnackBar(content: Text("Session not found: ${res.statusCode}")),
                 );
               }
             } catch (e) {
               setState(() => scanned = false);
 
+              print("ERROR: $e");
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Server error")),
               );
             }
-          }
+          },
       ),
     );
   }

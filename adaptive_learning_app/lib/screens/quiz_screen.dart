@@ -26,11 +26,8 @@ class _QuizScreenState extends State<QuizScreen> {
       if (user != null) {
         quizProvider.startQuizAdaptive(
           userId: user.id,
-          sessionId: widget.sessionId, // ✔ ADD THIS
+          sessionId: widget.sessionId,
         );
-      if (user != null) {
-        Provider.of<QuizProvider>(context, listen: false)
-            .startQuizAdaptive(userId: user.id);
       }
     });
   }
@@ -114,10 +111,6 @@ class _QuizScreenState extends State<QuizScreen> {
                 Container(
                   padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        TextStyle(fontSize: 16, color: Colors.grey.shade600)),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                       color: Colors.indigo.shade100,
                       borderRadius: BorderRadius.circular(8)),
@@ -131,7 +124,6 @@ class _QuizScreenState extends State<QuizScreen> {
             Text(question.title,
                 style:
                 const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 32),
             Expanded(
               child: question.type == 'DRAG_DROP'
@@ -148,7 +140,6 @@ class _QuizScreenState extends State<QuizScreen> {
                     padding: const EdgeInsets.all(16)),
                 child:
                 const Text('Submit Order', style: TextStyle(fontSize: 18)),
-                    const Text('Submit Order', style: TextStyle(fontSize: 18)),
               ),
           ],
         ),
@@ -245,7 +236,7 @@ class _QuizScreenState extends State<QuizScreen> {
             const SizedBox(height: 16),
             Text('Score: ${quizProvider.score}',
                 style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             Text(
                 'Correct: ${quizProvider.correctAnswers}/${quizProvider.questions.length}',
                 style: const TextStyle(fontSize: 18)),

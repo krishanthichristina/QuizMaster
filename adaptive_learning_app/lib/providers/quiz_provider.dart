@@ -4,7 +4,16 @@ import '../models/question_model.dart';
 import '../models/result_model.dart';
 import '../services/api_service.dart';
 
+
+
 class QuizProvider with ChangeNotifier {
+
+  int _userId = 0;
+
+  void setUserId(int id) {
+    _userId = id;
+    notifyListeners();
+  }
   /// Selects adaptive questions based on user's past results.
   /// Prioritizes weakest topics and increases difficulty gradually.
   List<Question> selectAdaptiveQuestions({
@@ -18,7 +27,6 @@ class QuizProvider with ChangeNotifier {
       resultsByTopic.putIfAbsent(result.type, () => []).add(result);
     }
     // SAFETY CHECK (IMPORTANT)
-    // 🛑 SAFETY CHECK (IMPORTANT)
 if (resultsByTopic.isEmpty) {
   return allQuestions.take(numQuestions).toList();
 }
@@ -84,6 +92,9 @@ if (resultsByTopic.isEmpty) {
   int _correctAnswers = 0;
   bool _isLoading = false;
   String _difficulty = 'easy';
+  bool _quizFinished = true;
+  bool get quizFinished => _quizFinished;
+  bool _isSubmitted = false;
 
   // Timer state
   int _timeSpent = 0;
@@ -100,25 +111,39 @@ if (resultsByTopic.isEmpty) {
   String get difficulty => _difficulty;
   int get timeSpent => _timeSpent;
 
-  Future<void> startQuizAdaptive({required int userId, int numQuestions = 10}) async {
+  Future<void> startQuizAdaptive({required int userId, String? sessionId,int numQuestions = 10}) async {
   _isLoading = true;
   _currentIndex = 0;
   _score = 0;
   _correctAnswers = 0;
   _timeSpent = 0;
+  _isSubmitted = false;
+  _quizFinished = false;
 
   notifyListeners();
 
+
+
   try {
-    // 1. Get adaptive difficulty from backend
-    final nextDifficulty = await ApiService.getNextDifficulty(userId);
+    if (sessionId != null) {
+      //  QR SESSION FLOW
+      final session = await ApiService.getSession(sessionId);
 
-    _difficulty = nextDifficulty;
+      _difficulty = session['difficulty'];
 
-    // 2. Load only that difficulty questions
-    final questions = await ApiService.getQuestions(nextDifficulty);
+      final questions = await ApiService.getQuestions(_difficulty);
 
-    _questions = questions.take(numQuestions).toList();
+      _questions = questions.take(numQuestions).toList();
+    } else {
+      // NORMAL ADAPTIVE FLOW
+      final nextDifficulty = await ApiService.getNextDifficulty(userId);
+
+      _difficulty = nextDifficulty;
+
+      final questions = await ApiService.getQuestions(nextDifficulty);
+
+      _questions = questions.take(numQuestions).toList();
+    }
 
     if (_questions.isNotEmpty) {
       _totalTimeLimit = _questions[0].timeLimit;
@@ -132,15 +157,55 @@ if (resultsByTopic.isEmpty) {
     notifyListeners();
   }
 }
+  // Future<void> startQuizFromSession({
+  //   required int userId,
+  //   required String sessionId,
+  //   required String difficulty,
+  //   int numQuestions = 10,
+  // }) async {
+  //   _isLoading = true;
+  //   _currentIndex = 0;
+  //   _score = 0;
+  //   _correctAnswers = 0;
+  //   _timeSpent = 0;
+  //
+  //   notifyListeners();
+
+  //   try {
+  //     _difficulty = difficulty;
+  //
+  //     final questions = await ApiService.getQuestions(difficulty);
+  //
+  //     _questions = questions.take(numQuestions).toList();
+  //
+  //     if (_questions.isNotEmpty) {
+  //       _totalTimeLimit = _questions[0].timeLimit;
+  //     }
+  //
+  //     startTimer();
+  //   } catch (e) {
+  //     rethrow;
+  //   } finally {
+  //     _isLoading = false;
+  //     notifyListeners();
+  //   }
+  // }
+
 
   void startTimer() {
     _timer?.cancel();
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _timeSpent++;
-      if (_timeSpent >= _totalTimeLimit) {
+
+      if (_timeSpent >= _totalTimeLimit && !_isSubmitted) {
         stopTimer();
-        // Auto-submit logic can be triggered from UI when time ends
+        _isSubmitted = true;
+
+        submitResult(_userId);
+        notifyListeners();
       }
+
       notifyListeners();
     });
   }
@@ -152,15 +217,19 @@ if (resultsByTopic.isEmpty) {
   void answerQuestion(int selectedIndex) {
     if (_questions[_currentIndex].correctIndex == selectedIndex) {
       _correctAnswers++;
-      // Use marks set by lecturer
       _score += _questions[_currentIndex].marks;
     }
 
     if (_currentIndex < _questions.length - 1) {
       _currentIndex++;
+
+      _timeSpent = 0;
+      _totalTimeLimit = _questions[_currentIndex].timeLimit;
     } else {
+      _quizFinished = true;
       stopTimer();
     }
+
     notifyListeners();
   }
 

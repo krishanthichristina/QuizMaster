@@ -3,6 +3,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../utils/session_store.dart';
 
 class QRGenerateScreen extends StatefulWidget {
   const QRGenerateScreen({super.key});
@@ -12,48 +13,68 @@ class QRGenerateScreen extends StatefulWidget {
 }
 
 class _QRGenerateScreenState extends State<QRGenerateScreen> {
-  String? sessionId;
-  bool isLoading = false;
+  String sessionId = const Uuid().v4();
+  bool isActive = false;
 
-  final String baseUrl = "http://10.163.47.128:8080";
+  Future<void> startSession() async {
+    await http.put(
+      Uri.parse("http://10.143.105.128:8080/api/session/$sessionId/start"),
+    );
 
-  Future<void> createSession() async {
-    setState(() => isLoading = true);
-
-    final newSessionId = const Uuid().v4();
-
-    try {
-      final res = await http.post(
-        Uri.parse("$baseUrl/api/session"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "sessionId": newSessionId,
-          "difficulty": "easy"
-        }),
-      );
-
-      if (res.statusCode == 200) {
-        setState(() {
-          sessionId = newSessionId;
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to create session")),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Server error")),
-      );
-    }
-
-    setState(() => isLoading = false);
+    setState(() {
+      isActive = true;
+    });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    createSession(); // ✅ auto-generate session
+  Future<void> stopSession() async {
+    await http.put(
+      Uri.parse("http://10.143.105.128:8080/api/session/$sessionId/stop"),
+    );
+
+    setState(() {
+      isActive = false;
+    });
+  }
+
+  Future<void> generateSession(String id) async {
+    final res = await http.post(
+      Uri.parse("http://10.143.105.128:8080/api/session"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "sessionId": id,
+        "difficulty": "easy"
+      }),
+    );
+
+    if (res.statusCode != 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to create session")),
+      );
+    }
+  }
+
+  void newSession() async {
+    final newId = const Uuid().v4();
+
+    final res = await http.post(
+      Uri.parse("http://10.143.105.128:8080/api/session"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "sessionId": newId,
+        "difficulty": "easy"
+      }),
+    );
+
+    if (res.statusCode == 200) {
+      setState(() {
+        sessionId = newId;
+        isActive = false;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to create session")),
+      );
+    }
   }
 
   @override
@@ -61,26 +82,49 @@ class _QRGenerateScreenState extends State<QRGenerateScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text("Generate Quiz QR")),
       body: Center(
-        child: isLoading
-            ? const CircularProgressIndicator()
-            : sessionId == null
-            ? ElevatedButton(
-          onPressed: createSession,
-          child: const Text("Generate Session"),
-        )
-            : Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+
             QrImageView(
-              data: sessionId!,
+              data: sessionId,
               size: 250,
             ),
+
             const SizedBox(height: 20),
+
             Text("Session: $sessionId"),
+
+            const SizedBox(height: 10),
+
+            Text(
+              isActive ? "ACTIVE" : "INACTIVE",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isActive ? Colors.green : Colors.red,
+              ),
+            ),
+
             const SizedBox(height: 20),
+
             ElevatedButton(
-              onPressed: createSession,
+              onPressed: newSession,
               child: const Text("Generate New Session"),
+            ),
+
+            const SizedBox(height: 10),
+
+            ElevatedButton(
+              onPressed: startSession,
+              child: const Text("Start Session"),
+            ),
+
+            const SizedBox(height: 10),
+
+            ElevatedButton(
+              onPressed: stopSession,
+              child: const Text("End Session"),
             ),
           ],
         ),
