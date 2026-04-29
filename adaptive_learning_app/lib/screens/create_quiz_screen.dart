@@ -37,7 +37,7 @@ class _CreateQuestionScreenState extends State<CreateQuestionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               DropdownButtonFormField<String>(
-                value: _selectedType,
+                initialValue: _selectedType,
                 decoration: const InputDecoration(labelText: 'Question Type', border: OutlineInputBorder()),
                 items: const [
                   DropdownMenuItem(value: 'MCQ', child: Text('Multiple Choice')),
@@ -54,7 +54,7 @@ class _CreateQuestionScreenState extends State<CreateQuestionScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedDifficulty,
+                initialValue: _selectedDifficulty,
                 decoration: const InputDecoration(labelText: 'Difficulty', border: OutlineInputBorder()),
                 items: const [
                   DropdownMenuItem(value: 'easy', child: Text('Easy')),
