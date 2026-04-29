@@ -15,6 +15,32 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // Email validation regex
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    return emailRegex.hasMatch(email);
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your email';
+    }
+    if (!_isValidEmail(value)) {
+      return 'Please enter a valid email address';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your password';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -33,7 +59,9 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.all(24.0),
             child: Card(
               elevation: 8,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Form(
@@ -45,17 +73,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 16),
                       const Text(
                         'Welcome Back',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.indigo),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.indigo,
+                        ),
                       ),
                       const SizedBox(height: 24),
                       TextFormField(
                         controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
                           labelText: 'Email',
                           prefixIcon: Icon(Icons.email),
                           border: OutlineInputBorder(),
+                          hintText: 'user@example.com',
                         ),
-                        validator: (value) => value!.isEmpty ? 'Please enter your email' : null,
+                        validator: _validateEmail,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -65,8 +99,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           labelText: 'Password',
                           prefixIcon: Icon(Icons.lock),
                           border: OutlineInputBorder(),
+                          hintText: 'Minimum 6 characters',
                         ),
-                        validator: (value) => value!.isEmpty ? 'Please enter your password' : null,
+                        validator: _validatePassword,
                       ),
                       const SizedBox(height: 24),
                       SizedBox(
@@ -83,8 +118,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                         _passwordController.text,
                                       );
                                     } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Login failed: ${e.toString()}')),
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Login failed: ${e.toString()}',
+                                          ),
+                                        ),
                                       );
                                     }
                                   }
@@ -92,11 +133,18 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.indigo,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           child: authProvider.isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('Login', style: TextStyle(fontSize: 18)),
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text(
+                                  'Login',
+                                  style: TextStyle(fontSize: 18),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -104,13 +152,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
                           );
-
                         },
                         child: const Text('Don\'t have an account? Register'),
                       ),
-
                     ],
                   ),
                 ),

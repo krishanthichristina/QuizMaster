@@ -26,7 +26,7 @@ class _QRGenerateScreenState extends State<QRGenerateScreen> {
 
   Future<void> startSession() async {
     await http.put(
-      Uri.parse("http://10.143.105.128:8080/api/session/$sessionId/start"),
+      Uri.parse("http://192.168.43.207:8080/api/session/$sessionId/start"),
     );
 
     setState(() {
@@ -36,7 +36,7 @@ class _QRGenerateScreenState extends State<QRGenerateScreen> {
 
   Future<void> stopSession() async {
     await http.put(
-      Uri.parse("http://10.143.105.128:8080/api/session/$sessionId/stop"),
+      Uri.parse("http://192.168.43.207:8080/api/session/$sessionId/stop"),
     );
 
     setState(() {
@@ -46,7 +46,7 @@ class _QRGenerateScreenState extends State<QRGenerateScreen> {
 
   Future<void> generateSession(String id) async {
     final res = await http.post(
-      Uri.parse("http://10.143.105.128:8080/api/session"),
+      Uri.parse("http://192.168.43.207:8080/api/session"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "sessionId": id,
@@ -65,7 +65,7 @@ class _QRGenerateScreenState extends State<QRGenerateScreen> {
     final newId = const Uuid().v4();
 
     final res = await http.post(
-      Uri.parse("http://10.143.105.128:8080/api/session"),
+      Uri.parse("http://192.168.43.207:8080/api/session"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "sessionId": newId,

@@ -27,7 +27,7 @@ class _QuizStartScreenState extends State<QuizStartScreen> {
     try {
       final data = await ApiService.getSession(widget.sessionId);
 
-      if (data == null || data['difficulty'] == null) {
+      if (data['difficulty'] == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Session not found")),
         );

@@ -7,7 +7,7 @@ class QuizScreen extends StatefulWidget {
   final String difficulty;
   final String? sessionId;
 
-  const QuizScreen({super.key, required this.difficulty,this.sessionId,});
+  const QuizScreen({super.key, required this.difficulty, this.sessionId});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -55,7 +55,8 @@ class _QuizScreenState extends State<QuizScreen> {
       return Scaffold(
         appBar: AppBar(title: const Text('Quiz')),
         body: const Center(
-            child: Text('No questions found for this difficulty.')),
+          child: Text('No questions found for this difficulty.'),
+        ),
       );
     }
 
@@ -95,7 +96,8 @@ class _QuizScreenState extends State<QuizScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             LinearProgressIndicator(
-              value: (quizProvider.currentIndex + 1) /
+              value:
+                  (quizProvider.currentIndex + 1) /
                   quizProvider.questions.length,
               backgroundColor: Colors.grey.shade200,
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.indigo),
@@ -105,25 +107,55 @@ class _QuizScreenState extends State<QuizScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                    'Question ${quizProvider.currentIndex + 1} of ${quizProvider.questions.length}',
-                    style:
-                    TextStyle(fontSize: 16, color: Colors.grey.shade600)),
-                Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                      color: Colors.indigo.shade100,
-                      borderRadius: BorderRadius.circular(8)),
-                  child: Text('${question.marks} Marks',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.indigo)),
+                  'Question ${quizProvider.currentIndex + 1} of ${quizProvider.questions.length}',
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getDifficultyColor(question.difficulty),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        question.difficulty.toUpperCase(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${question.marks} Marks',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.indigo,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Text(question.title,
-                style:
-                const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(
+              question.title,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 32),
             Expanded(
               child: question.type == 'DRAG_DROP'
@@ -135,11 +167,14 @@ class _QuizScreenState extends State<QuizScreen> {
                 onPressed: () =>
                     _handleDragDropSubmit(quizProvider, question, user?.id),
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.all(16)),
-                child:
-                const Text('Submit Order', style: TextStyle(fontSize: 18)),
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: const Text(
+                  'Submit Order',
+                  style: TextStyle(fontSize: 18),
+                ),
               ),
           ],
         ),
@@ -162,10 +197,13 @@ class _QuizScreenState extends State<QuizScreen> {
               foregroundColor: Colors.indigo,
               side: const BorderSide(color: Colors.indigo),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: Text(question.options[index],
-                style: const TextStyle(fontSize: 18)),
+            child: Text(
+              question.options[index],
+              style: const TextStyle(fontSize: 18),
+            ),
           ),
         );
       },
@@ -190,8 +228,10 @@ class _QuizScreenState extends State<QuizScreen> {
               color: Colors.indigo.shade50,
               child: ListTile(
                 leading: const Icon(Icons.drag_handle),
-                title: Text(_draggedItems![i],
-                    style: const TextStyle(fontSize: 18)),
+                title: Text(
+                  _draggedItems![i],
+                  style: const TextStyle(fontSize: 18),
+                ),
               ),
             ),
       ],
@@ -205,6 +245,19 @@ class _QuizScreenState extends State<QuizScreen> {
         quizProvider.isQuizFinished) {
       if (userId != null) quizProvider.submitResult(userId);
       _showResultDialog(quizProvider);
+    }
+  }
+
+  Color _getDifficultyColor(String difficulty) {
+    switch (difficulty.toLowerCase()) {
+      case 'easy':
+        return Colors.green;
+      case 'medium':
+        return Colors.orange;
+      case 'hard':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -234,23 +287,28 @@ class _QuizScreenState extends State<QuizScreen> {
           children: [
             const Icon(Icons.emoji_events, size: 80, color: Colors.amber),
             const SizedBox(height: 16),
-            Text('Score: ${quizProvider.score}',
-                style:
-                const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             Text(
-                'Correct: ${quizProvider.correctAnswers}/${quizProvider.questions.length}',
-                style: const TextStyle(fontSize: 18)),
-            Text('Time: ${quizProvider.timeSpent}s',
-                style: const TextStyle(fontSize: 18)),
+              'Score: ${quizProvider.score}',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Correct: ${quizProvider.correctAnswers}/${quizProvider.questions.length}',
+              style: const TextStyle(fontSize: 18),
+            ),
+            Text(
+              'Time: ${quizProvider.timeSpent}s',
+              style: const TextStyle(fontSize: 18),
+            ),
           ],
         ),
         actions: [
           TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              child: const Text('OK'))
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
         ],
       ),
     );
