@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'quiz_start_screen.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class QRScanScreen extends StatefulWidget {
@@ -50,7 +49,7 @@ class _QRScanScreenState extends State<QRScanScreen> {
 
             try {
               final res = await http.get(
-                Uri.parse("http://10.143.105.128:8080/api/session/$sessionId"),
+                Uri.parse("http://192.168.43.207:8080/api/session/$sessionId"),
               );
 
               print("STATUS: ${res.statusCode}");

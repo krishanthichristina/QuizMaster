@@ -16,6 +16,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   String _selectedRole = 'STUDENT';
 
+  // Email validation regex
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    return emailRegex.hasMatch(email);
+  }
+
+  String? _validateName(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your full name';
+    }
+    if (value.length < 3) {
+      return 'Name must be at least 3 characters';
+    }
+    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+      return 'Name can only contain letters and spaces';
+    }
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your email';
+    }
+    if (!_isValidEmail(value)) {
+      return 'Please enter a valid email address';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your password';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    if (!RegExp(r'^(?=.*[a-z])').hasMatch(value)) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!RegExp(r'^(?=.*[A-Z])').hasMatch(value)) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!RegExp(r'^(?=.*\d)').hasMatch(value)) {
+      return 'Password must contain at least one number';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -39,7 +87,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             padding: const EdgeInsets.all(24.0),
             child: Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Form(
@@ -47,7 +97,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.person_add, size: 60, color: Colors.indigo),
+                      const Icon(
+                        Icons.person_add,
+                        size: 60,
+                        color: Colors.indigo,
+                      ),
                       const SizedBox(height: 24),
                       TextFormField(
                         controller: _nameController,
@@ -55,18 +109,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'Full Name',
                           prefixIcon: Icon(Icons.person),
                           border: OutlineInputBorder(),
+                          hintText: 'Your full name',
                         ),
-                        validator: (value) => value!.isEmpty ? 'Please enter your name' : null,
+                        validator: _validateName,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
                           labelText: 'Email',
                           prefixIcon: Icon(Icons.email),
                           border: OutlineInputBorder(),
+                          hintText: 'user@example.com',
                         ),
-                        validator: (value) => value!.isEmpty ? 'Please enter your email' : null,
+                        validator: _validateEmail,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -76,22 +133,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'Password',
                           prefixIcon: Icon(Icons.lock),
                           border: OutlineInputBorder(),
+                          hintText:
+                              'Min 6 chars with uppercase, lowercase & number',
                         ),
-                        validator: (value) => value!.isEmpty ? 'Please enter your password' : null,
+                        validator: _validatePassword,
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        value: _selectedRole,
+                        initialValue: _selectedRole,
                         decoration: const InputDecoration(
                           labelText: 'Role',
                           prefixIcon: Icon(Icons.category),
                           border: OutlineInputBorder(),
                         ),
                         items: const [
-                          DropdownMenuItem(value: 'STUDENT', child: Text('Student')),
-                          DropdownMenuItem(value: 'LECTURER', child: Text('Lecturer')),
+                          DropdownMenuItem(
+                            value: 'STUDENT',
+                            child: Text('Student'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'LECTURER',
+                            child: Text('Lecturer'),
+                          ),
                         ],
-                        onChanged: (value) => setState(() => _selectedRole = value!),
+                        onChanged: (value) =>
+                            setState(() => _selectedRole = value!),
                       ),
                       const SizedBox(height: 24),
                       SizedBox(
@@ -111,8 +177,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       );
                                       if (mounted) Navigator.pop(context);
                                     } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Registration failed: ${e.toString()}')),
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Registration failed: ${e.toString()}',
+                                          ),
+                                        ),
                                       );
                                     }
                                   }
@@ -120,11 +192,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.indigo,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           child: authProvider.isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('Register', style: TextStyle(fontSize: 18)),
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text(
+                                  'Register',
+                                  style: TextStyle(fontSize: 18),
+                                ),
                         ),
                       ),
                     ],
