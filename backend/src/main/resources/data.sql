@@ -1,6 +1,6 @@
-INSERT INTO users(name, email, password,role) VALUES ('Alice', 'alice@example.com', 'password123','student'),
-('Sajiya','s@gmail.com',123,'lecturer'),
-('fathima','f@gmail.com',123,'student');
+INSERT INTO users(name, email, password,role) VALUES ('Alice', 'alice@example.com', '$2b$12$i8YIOE46v5/ny4WN92UHgO02afI7iNaXR/TA6b5ZP1Fv8jsqKTMN2','student'),
+('Sajiya','s@gmail.com','$2b$12$.8HS.HtSH9bgS/NPNLrG6uvINnlG77yqqeH3OYiwKjPzbWyIGHbPu','lecturer'),
+('fathima','f@gmail.com','$2b$12$PnyY4NksXDMotjndqk2NLuLdn6nwYoMWm.etP.DuRtbbDhkcb7mcC','student');
 
 INSERT INTO questions(difficulty, title, option_a, option_b, option_c, option_d, correct_index) VALUES
 ('easy', 'What is 2 + 2?', '3', '4', '5', '6', 1),

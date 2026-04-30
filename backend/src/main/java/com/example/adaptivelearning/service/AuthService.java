@@ -3,6 +3,8 @@ package com.example.adaptivelearning.service;
 import com.example.adaptivelearning.dto.AuthRequest;
 import com.example.adaptivelearning.model.AppUser;
 import com.example.adaptivelearning.repository.AppUserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.stereotype.Service;
 
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final AppUserRepository repository;
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public AuthService(AppUserRepository repository) {
         this.repository = repository;
@@ -29,7 +32,7 @@ public class AuthService {
                 new AppUser(
                         request.getName(),
                         request.getEmail(),
-                        request.getPassword(),
+                        passwordEncoder.encode(request.getPassword()),
                         role
                 )
         );
@@ -45,7 +48,7 @@ public class AuthService {
             return null;   // or throw exception if you prefer
         }
 
-        if (!user.getPassword().equals(request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             return null;   // or throw exception
         }
 
