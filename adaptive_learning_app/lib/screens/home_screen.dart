@@ -26,6 +26,14 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         actions: [
+          if (!auth.isLecturer)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                // This will trigger a rebuild and refetch the FutureBuilder
+                (context as Element).markNeedsBuild();
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => auth.logout(),
@@ -128,7 +136,8 @@ class HomeScreen extends StatelessWidget {
                 return const SizedBox();
               }
 
-              final session = snapshot.data!.first;
+              // Always show the last activated session if multiple exist
+              final session = snapshot.data!.last;
               final sessionId = session['sessionId'];
 
               return Column(
@@ -145,7 +154,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 15),
 
                   QrImageView(
-                    data: "adaptivequiz://session/$sessionId",
+                    data: "http://10.143.105.128:8080/api/session/$sessionId",
                     size: 200,
                   ),
 

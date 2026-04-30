@@ -17,10 +17,16 @@ public class QuizSessionService {
     }
 
    public QuizSession createSession(String sessionId, String difficulty) {
+    // Optional: Deactivate all other sessions when a new one is created
+    // repository.findByIsActiveTrue().forEach(s -> {
+    //     s.setIsActive(false);
+    //     repository.save(s);
+    // });
+
     QuizSession session = new QuizSession();
     session.setSessionId(sessionId);
     session.setDifficulty(difficulty);
-    session.setIsActive(false); //  IMPORTANT
+    session.setIsActive(false); 
 
     return repository.save(session);
 }
@@ -34,8 +40,14 @@ public class QuizSessionService {
     }
 
     public Optional<QuizSession> activateSession(String id) {
-    Optional<QuizSession> optional = repository.findById(id);
+    // Deactivate all other sessions before activating the new one
+    List<QuizSession> activeSessions = repository.findByIsActiveTrue();
+    for (QuizSession s : activeSessions) {
+        s.setIsActive(false);
+        repository.save(s);
+    }
 
+    Optional<QuizSession> optional = repository.findById(id);
     optional.ifPresent(session -> {
         session.setIsActive(true);
         repository.save(session);

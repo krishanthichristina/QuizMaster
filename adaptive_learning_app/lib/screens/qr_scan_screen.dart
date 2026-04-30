@@ -29,12 +29,24 @@ class _QRScanScreenState extends State<QRScanScreen> {
 
             setState(() => scanned = true);
 
-            String sessionId = value;
-            if (value.startsWith("adaptivequiz://session/")) {
-              sessionId = value.replaceFirst("adaptivequiz://session/", "");
+            String sessionId = value.trim();
+            
+            // Handle full URL or deep link formats
+            if (sessionId.contains("/session/")) {
+              sessionId = sessionId.split("/session/").last;
+            }
+            
+            // Clean up any remaining URI parts
+            if (sessionId.contains("?")) {
+              sessionId = sessionId.split("?").first;
+            }
+            
+            // Remove any trailing slashes
+            if (sessionId.endsWith("/")) {
+              sessionId = sessionId.substring(0, sessionId.length - 1);
             }
 
-            print("SCANNED SESSION: $sessionId");
+            print("EXTRACTED SESSION ID: $sessionId");
 
             try {
               final res = await http.get(

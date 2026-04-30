@@ -20,28 +20,39 @@ class _QRGenerateScreenState extends State<QRGenerateScreen> {
   @override
   void initState() {
     super.initState();
-
     SessionStore.currentSessionId.value = sessionId;
+    // Ensure the initial session is created on the backend
+    generateSession(sessionId);
   }
 
   Future<void> startSession() async {
-    await http.put(
+    final res = await http.put(
       Uri.parse("http://10.143.105.128:8080/api/session/$sessionId/start"),
     );
 
-    setState(() {
-      isActive = true;
-    });
+    if (res.statusCode == 200) {
+      setState(() {
+        isActive = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Session Started Successfully")),
+      );
+    }
   }
 
   Future<void> stopSession() async {
-    await http.put(
+    final res = await http.put(
       Uri.parse("http://10.143.105.128:8080/api/session/$sessionId/stop"),
     );
 
-    setState(() {
-      isActive = false;
-    });
+    if (res.statusCode == 200) {
+      setState(() {
+        isActive = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Session Stopped Successfully")),
+      );
+    }
   }
 
   Future<void> generateSession(String id) async {
@@ -97,7 +108,7 @@ class _QRGenerateScreenState extends State<QRGenerateScreen> {
           children: [
 
             QrImageView(
-              data: "adaptivequiz://session/$sessionId",
+              data: "http://10.143.105.128:8080/api/session/$sessionId",
               size: 250,
             ),
 

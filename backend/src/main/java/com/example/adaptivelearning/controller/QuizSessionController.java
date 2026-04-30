@@ -31,9 +31,13 @@ public QuizSession create(@RequestBody CreateSessionRequest request) {
 }
 
     @GetMapping("/session/{id}")
-public ResponseEntity<QuizSession> get(@PathVariable String id) {
+public ResponseEntity<?> get(@PathVariable String id, @RequestHeader(value = "User-Agent", required = false) String userAgent) {
     return service.getSession(id)
-            .map(ResponseEntity::ok)
+            .map(session -> {
+                // If accessed via a browser (not the app), we can provide a friendly message or redirect
+                // For now, let's keep it returning the session object but ensure it's JSON
+                return ResponseEntity.ok(session);
+            })
             .orElse(ResponseEntity.notFound().build());
 }
 
