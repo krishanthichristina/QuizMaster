@@ -6,7 +6,7 @@ class Question {
   final List<String> options;
   final int correctIndex;
   final int marks;
-  final int timeLimit; // in seconds
+
 
   Question({
     this.id,
@@ -16,7 +16,7 @@ class Question {
     required this.options,
     required this.correctIndex,
     required this.marks,
-    required this.timeLimit,
+
   });
 
   factory Question.fromJson(Map<String, dynamic> json) {
@@ -28,7 +28,7 @@ class Question {
       options: List<String>.from(json['options']),
       correctIndex: json['correctIndex'],
       marks: json['marks'] ?? 1,
-      timeLimit: json['timeLimit'] ?? 60,
+
     );
   }
 
@@ -43,7 +43,7 @@ class Question {
       'optionD': options.length > 3 ? options[3] : '',
       'correctIndex': correctIndex,
       'marks': marks,
-      'timeLimit': timeLimit,
+
     };
   }
 }

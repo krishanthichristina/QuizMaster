@@ -38,4 +38,8 @@ public List<Map<String, Object>> getQuestions(
         @RequestParam(defaultValue = "easy") String difficulty) {
     return service.getQuestionsByDifficulty(difficulty);
 }
+@PostMapping("/bulk")
+public List<Question> saveAll(@RequestBody List<Question> questions) {
+    return service.saveAll(questions);
+}
 }

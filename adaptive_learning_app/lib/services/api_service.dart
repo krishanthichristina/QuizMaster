@@ -5,7 +5,7 @@ import '../models/question_model.dart';
 import '../models/result_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.43.207:8080/api';
+  static const String baseUrl = 'http://10.143.105.128:8080/api';
 
   // Auth
   static Future<User> login(String email, String password) async {

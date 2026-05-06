@@ -39,6 +39,7 @@ class MyApp extends StatelessWidget {
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) {
           return auth.isAuthenticated ? const HomeScreen() : const LoginScreen();
+          // conditional routing / auth-based routing
 
 
         },

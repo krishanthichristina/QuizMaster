@@ -125,7 +125,6 @@ class HomeScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          /// ✅ LIVE QR SECTION (FIXED)
           FutureBuilder<List<dynamic>>(
             future: ApiService.getActiveSessions(),
             builder: (context, snapshot) {
