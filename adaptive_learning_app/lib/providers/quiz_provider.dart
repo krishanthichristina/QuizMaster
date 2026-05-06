@@ -4,88 +4,84 @@ import '../models/question_model.dart';
 import '../models/result_model.dart';
 import '../services/api_service.dart';
 
-
-
 class QuizProvider with ChangeNotifier {
-
   int _userId = 0;
 
   void setUserId(int id) {
     _userId = id;
     notifyListeners();
   }
-  /// Selects adaptive questions based on user's past results.
-  /// Prioritizes weakest topics and increases difficulty gradually.
+
+  /// Adaptive question selection (UNCHANGED)
   List<Question> selectAdaptiveQuestions({
     required List<Question> allQuestions,
     required List<Result> userResults,
     int numQuestions = 10,
   }) {
-    // Group results by topic (using question type as topic proxy)
     final Map<String, List<Result>> resultsByTopic = {};
+
     for (var result in userResults) {
       resultsByTopic.putIfAbsent(result.type, () => []).add(result);
     }
-    // SAFETY CHECK (IMPORTANT)
-if (resultsByTopic.isEmpty) {
-  return allQuestions.take(numQuestions).toList();
-}
 
-    // Calculate average score per topic
+    if (resultsByTopic.isEmpty) {
+      return allQuestions.take(numQuestions).toList();
+    }
+
     final topicScores = resultsByTopic.map((topic, results) {
-  final accuracy = results.isNotEmpty
-      ? results.where((r) => r.correctAnswers > 0).length / results.length
-      : 0.0;
+      final accuracy = results.isNotEmpty
+          ? results.where((r) => r.correctAnswers > 0).length / results.length
+          : 0.0;
 
-  return MapEntry(topic, accuracy);
-});
+      return MapEntry(topic, accuracy);
+    });
 
-    // Sort topics by weakest (lowest average score) first
     final sortedTopics = topicScores.keys.toList()
       ..sort((a, b) => topicScores[a]!.compareTo(topicScores[b]!));
 
     List<Question> selected = [];
+
     for (var topic in sortedTopics) {
       final topicResults = resultsByTopic[topic]!;
-      // Estimate comfort difficulty as most frequent difficulty in past results
+
       final difficultyCounts = <String, int>{};
       for (var r in topicResults) {
         difficultyCounts[r.difficulty] =
             (difficultyCounts[r.difficulty] ?? 0) + 1;
       }
+
       String comfortDifficulty = difficultyCounts.entries.isNotEmpty
           ? (difficultyCounts.entries.toList()
-                ..sort((a, b) => b.value.compareTo(a.value)))[0]
-              .key
+        ..sort((a, b) => b.value.compareTo(a.value)))[0]
+          .key
           : 'easy';
 
-      // Define difficulty progression order
       final difficulties = ['easy', 'medium', 'hard'];
       int comfortIdx = difficulties.indexOf(comfortDifficulty);
       int targetIdx = (comfortIdx + 1).clamp(0, difficulties.length - 1);
       String targetDifficulty = difficulties[targetIdx];
 
-      // Select questions from this topic and target difficulty
       final candidates = allQuestions.where((q) =>
-    q.type.toLowerCase() == topic.toLowerCase() &&
-    (q.difficulty.toLowerCase() == targetDifficulty.toLowerCase() ||
-     q.difficulty.toLowerCase() == comfortDifficulty.toLowerCase())
-).toList();
+      q.type.toLowerCase() == topic.toLowerCase() &&
+          (q.difficulty.toLowerCase() == targetDifficulty.toLowerCase() ||
+              q.difficulty.toLowerCase() == comfortDifficulty.toLowerCase())).toList();
+
       candidates.shuffle();
       selected.addAll(candidates.take(numQuestions - selected.length));
+
       if (selected.length >= numQuestions) break;
     }
 
-    // Fill up with random questions if needed
     if (selected.length < numQuestions) {
       final remaining =
-          allQuestions.where((q) => !selected.contains(q)).toList()..shuffle();
+      allQuestions.where((q) => !selected.contains(q)).toList()..shuffle();
       selected.addAll(remaining.take(numQuestions - selected.length));
     }
 
     return selected.take(numQuestions).toList();
   }
 
+  // ================= STATE =================
   List<Question> _questions = [];
   int _currentIndex = 0;
   int _score = 0;
@@ -93,15 +89,13 @@ if (resultsByTopic.isEmpty) {
   bool _isLoading = false;
   String _difficulty = 'easy';
   bool _quizFinished = true;
-  bool get quizFinished => _quizFinished;
   bool _isSubmitted = false;
+  bool get isQuizFinished => _quizFinished;
 
-  // Timer state
+  // ================= TIMER (QUIZ LEVEL ONLY) =================
   int _timeSpent = 0;
-  int _totalTimeLimit = 60; // Default 60 seconds
+  int _totalTimeLimit = 600; // 10 minutes default (IMPORTANT FIX)
   Timer? _timer;
-
-  int get totalTimeLimit => _totalTimeLimit;
 
   List<Question> get questions => _questions;
   int get currentIndex => _currentIndex;
@@ -110,88 +104,89 @@ if (resultsByTopic.isEmpty) {
   bool get isLoading => _isLoading;
   String get difficulty => _difficulty;
   int get timeSpent => _timeSpent;
+  int get totalTimeLimit => _totalTimeLimit;
+  bool get quizFinished => _quizFinished;
 
-  Future<void> startQuizAdaptive({required int userId, String? sessionId,int numQuestions = 10}) async {
-  _isLoading = true;
-  _currentIndex = 0;
-  _score = 0;
-  _correctAnswers = 0;
-  _timeSpent = 0;
-  _isSubmitted = false;
-  _quizFinished = false;
+  // ================= START QUIZ =================
+  Future<void> startQuizAdaptive({
+    required int userId,
+    String? sessionId,
+    int numQuestions = 10,
+  }) async {
+    _userId = userId;
+    _isLoading = true;
+    _currentIndex = 0;
+    _score = 0;
+    _correctAnswers = 0;
+    _timeSpent = 0;
+    _isSubmitted = false;
+    _quizFinished = false;
 
-  notifyListeners();
+    notifyListeners();
+
+    try {
+      if (sessionId != null) {
+        final session = await ApiService.getSession(sessionId);
+        _difficulty = session['difficulty'];
+
+        final questions = await ApiService.getQuestions(_difficulty);
+        _questions = questions.take(numQuestions).toList();
+      } else {
+        final nextDifficulty = await ApiService.getNextDifficulty(userId);
+        _difficulty = nextDifficulty;
+
+        final questions = await ApiService.getQuestions(nextDifficulty);
+        _questions = questions.take(numQuestions).toList();
+      }
 
 
+      _totalTimeLimit = 10 * 60;
 
-  try {
-    if (sessionId != null) {
-      //  QR SESSION FLOW
-      final session = await ApiService.getSession(sessionId);
+      startTimer();
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
-      _difficulty = session['difficulty'];
+  /// Start a regular quiz for a given difficulty (non-adaptive)
+  Future<void> startQuiz({
+    required int userId,
+    required String difficulty,
+    String? sessionId,
+    int numQuestions = 10,
+  }) async {
+    _userId = userId;
+    _isLoading = true;
+    _currentIndex = 0;
+    _score = 0;
+    _correctAnswers = 0;
+    _timeSpent = 0;
+    _isSubmitted = false;
+    _quizFinished = false;
+
+    notifyListeners();
+
+    try {
+      _difficulty = difficulty.toLowerCase();
 
       final questions = await ApiService.getQuestions(_difficulty);
-
       _questions = questions.take(numQuestions).toList();
-    } else {
-      // NORMAL ADAPTIVE FLOW
-      final nextDifficulty = await ApiService.getNextDifficulty(userId);
 
-      _difficulty = nextDifficulty;
+      _totalTimeLimit = 10 * 60;
 
-      final questions = await ApiService.getQuestions(nextDifficulty);
-
-      _questions = questions.take(numQuestions).toList();
+      startTimer();
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    if (_questions.isNotEmpty) {
-      _totalTimeLimit = _questions[0].timeLimit;
-    }
-
-    startTimer();
-  } catch (e) {
-    rethrow;
-  } finally {
-    _isLoading = false;
-    notifyListeners();
   }
-}
-  // Future<void> startQuizFromSession({
-  //   required int userId,
-  //   required String sessionId,
-  //   required String difficulty,
-  //   int numQuestions = 10,
-  // }) async {
-  //   _isLoading = true;
-  //   _currentIndex = 0;
-  //   _score = 0;
-  //   _correctAnswers = 0;
-  //   _timeSpent = 0;
-  //
-  //   notifyListeners();
 
-  //   try {
-  //     _difficulty = difficulty;
-  //
-  //     final questions = await ApiService.getQuestions(difficulty);
-  //
-  //     _questions = questions.take(numQuestions).toList();
-  //
-  //     if (_questions.isNotEmpty) {
-  //       _totalTimeLimit = _questions[0].timeLimit;
-  //     }
-  //
-  //     startTimer();
-  //   } catch (e) {
-  //     rethrow;
-  //   } finally {
-  //     _isLoading = false;
-  //     notifyListeners();
-  //   }
-  // }
-
-
+  // ================= TIMER =================
   void startTimer() {
     _timer?.cancel();
 
@@ -201,9 +196,7 @@ if (resultsByTopic.isEmpty) {
       if (_timeSpent >= _totalTimeLimit && !_isSubmitted) {
         stopTimer();
         _isSubmitted = true;
-
         submitResult(_userId);
-        notifyListeners();
       }
 
       notifyListeners();
@@ -214,6 +207,7 @@ if (resultsByTopic.isEmpty) {
     _timer?.cancel();
   }
 
+  // ================= ANSWER =================
   void answerQuestion(int selectedIndex) {
     if (_questions[_currentIndex].correctIndex == selectedIndex) {
       _correctAnswers++;
@@ -222,9 +216,6 @@ if (resultsByTopic.isEmpty) {
 
     if (_currentIndex < _questions.length - 1) {
       _currentIndex++;
-
-      _timeSpent = 0;
-      _totalTimeLimit = _questions[_currentIndex].timeLimit;
     } else {
       _quizFinished = true;
       stopTimer();
@@ -233,22 +224,20 @@ if (resultsByTopic.isEmpty) {
     notifyListeners();
   }
 
-  bool get isQuizFinished =>
-      _currentIndex >= _questions.length - 1 && _timer?.isActive == false;
-
+  // ================= RESULT =================
   Future<void> submitResult(int userId) async {
-  final result = Result(
-    userId: userId,
-    difficulty: _difficulty,
-    type: _questions.isNotEmpty ? _questions[0].type : 'MCQ',
-    score: _score,
-    totalQuestions: _questions.length,
-    correctAnswers: _correctAnswers,
-    timeSpentSeconds: _timeSpent,
-  );
+    final result = Result(
+      userId: userId,
+      difficulty: _difficulty,
+      type: _questions.isNotEmpty ? _questions[0].type : 'MCQ',
+      score: _score,
+      totalQuestions: _questions.length,
+      correctAnswers: _correctAnswers,
+      timeSpentSeconds: _timeSpent,
+    );
 
-  await ApiService.saveResult(result);
-}
+    await ApiService.saveResult(result);
+  }
 
   @override
   void dispose() {

@@ -120,12 +120,13 @@ class HomeScreen extends StatelessWidget {
               Icons.sentiment_satisfied, Colors.green),
           _buildDifficultyCard(context, 'Medium', 'Test your intermediate skills',
               Icons.sentiment_neutral, Colors.orange),
-          _buildDifficultyCard(context, 'Hard', 'Only for the experts!',
+            _buildDifficultyCard(context, 'Hard', 'Only for the experts!',
               Icons.sentiment_very_dissatisfied, Colors.red),
+            _buildDifficultyCard(context, 'Adaptive', 'Adaptive to your level',
+              Icons.autorenew, Colors.purple),
 
           const SizedBox(height: 20),
 
-          /// ✅ LIVE QR SECTION (FIXED)
           FutureBuilder<List<dynamic>>(
             future: ApiService.getActiveSessions(),
             builder: (context, snapshot) {
@@ -154,7 +155,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 15),
 
                   QrImageView(
-                    data: "http://10.143.105.128:8080/api/session/$sessionId",
+                    data: "http://192.168.2:8080/api/session/$sessionId",
                     size: 200,
                   ),
 

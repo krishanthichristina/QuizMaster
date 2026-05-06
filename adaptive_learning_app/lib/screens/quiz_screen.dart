@@ -24,10 +24,18 @@ class _QuizScreenState extends State<QuizScreen> {
       final quizProvider = Provider.of<QuizProvider>(context, listen: false);
 
       if (user != null) {
-        quizProvider.startQuizAdaptive(
-          userId: user.id,
-          sessionId: widget.sessionId,
-        );
+        if (widget.difficulty.toLowerCase() == 'adaptive') {
+          quizProvider.startQuizAdaptive(
+            userId: user.id,
+            sessionId: widget.sessionId,
+          );
+        } else {
+          quizProvider.startQuiz(
+            userId: user.id,
+            difficulty: widget.difficulty,
+            sessionId: widget.sessionId,
+          );
+        }
       }
     });
   }

@@ -7,7 +7,7 @@ public class Question {
   private String title;
    private String type; // MCQ, TF, DRAG_DROP
   private Integer marks;
-  private Integer timeLimit; // in seconds for the whole quiz (stored in each question for simplicity in this schema)
+   private Integer durationMinutes;
   @Column(name = "option_a") private String optionA;
   @Column(name = "option_b") private String optionB;
   @Column(name = "option_c") private String optionC;
@@ -26,6 +26,10 @@ public class Question {
   public void setCorrectIndex(Integer correctIndex) { this.correctIndex = correctIndex; }
   public Integer getMarks() { return marks; }
   public void setMarks(Integer marks) { this.marks = marks; }
-  public Integer getTimeLimit() { return timeLimit; }
-  public void setTimeLimit(Integer timeLimit) { this.timeLimit = timeLimit; }
+ public Integer getDurationMinutes() {
+        return durationMinutes;
+    }
+public void setDurationMinutes(Integer durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
 }

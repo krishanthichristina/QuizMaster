@@ -49,7 +49,7 @@ class _QRScanScreenState extends State<QRScanScreen> {
 
             try {
               final res = await http.get(
-                Uri.parse("http://192.168.43.207:8080/api/session/$sessionId"),
+                Uri.parse("http://192.168.2.219:8080/api/session/$sessionId"),
               );
 
               print("STATUS: ${res.statusCode}");

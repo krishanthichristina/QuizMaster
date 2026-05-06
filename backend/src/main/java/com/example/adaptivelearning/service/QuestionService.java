@@ -35,11 +35,27 @@ public class QuestionService {
     }
 
     private Map<String, Object> toMap(Question q) {
-        return Map.of("id", q.getId(), "difficulty", q.getDifficulty(), "title", q.getTitle(), "type",
-                q.getType() != null ? q.getType() : "MCQ", "marks", q.getMarks() != null ? q.getMarks() : 1,
-                "timeLimit", q.getTimeLimit() != null ? q.getTimeLimit() : 60, "options",
-                List.of(q.getOptionA() != null ? q.getOptionA() : "", q.getOptionB() != null ? q.getOptionB() : "",
-                        q.getOptionC() != null ? q.getOptionC() : "", q.getOptionD() != null ? q.getOptionD() : ""),
-                "correctIndex", q.getCorrectIndex());
-    }
+    return Map.of(
+            "id", q.getId(),
+            "difficulty", q.getDifficulty(),
+            "title", q.getTitle(),
+            "type", q.getType() != null ? q.getType() : "MCQ",
+            "marks", q.getMarks() != null ? q.getMarks() : 1,
+
+            
+
+            "options",
+            List.of(
+                    q.getOptionA() != null ? q.getOptionA() : "",
+                    q.getOptionB() != null ? q.getOptionB() : "",
+                    q.getOptionC() != null ? q.getOptionC() : "",
+                    q.getOptionD() != null ? q.getOptionD() : ""
+            ),
+
+            "correctIndex", q.getCorrectIndex()
+    );
+}
+public List<Question> saveAll(List<Question> questions) {
+    return repository.saveAll(questions);
+}
 }

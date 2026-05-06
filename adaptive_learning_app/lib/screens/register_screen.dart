@@ -11,10 +11,16 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
   String _selectedRole = 'STUDENT';
+
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   // Email validation regex
   bool _isValidEmail(String email) {
@@ -26,12 +32,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (value == null || value.isEmpty) {
       return 'Please enter your full name';
     }
+
     if (value.length < 3) {
       return 'Name must be at least 3 characters';
     }
+
     if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
       return 'Name can only contain letters and spaces';
     }
+
     return null;
   }
 
@@ -39,9 +48,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (value == null || value.isEmpty) {
       return 'Please enter your email';
     }
+
     if (!_isValidEmail(value)) {
       return 'Please enter a valid email address';
     }
+
     return null;
   }
 
@@ -49,19 +60,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (value == null || value.isEmpty) {
       return 'Please enter your password';
     }
+
     if (value.length < 6) {
       return 'Password must be at least 6 characters';
     }
+
     if (!RegExp(r'^(?=.*[a-z])').hasMatch(value)) {
       return 'Password must contain at least one lowercase letter';
     }
+
     if (!RegExp(r'^(?=.*[A-Z])').hasMatch(value)) {
       return 'Password must contain at least one uppercase letter';
     }
+
     if (!RegExp(r'^(?=.*\d)').hasMatch(value)) {
       return 'Password must contain at least one number';
     }
+
     return null;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -102,7 +127,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         size: 60,
                         color: Colors.indigo,
                       ),
+
                       const SizedBox(height: 24),
+
+                      // Full Name
                       TextFormField(
                         controller: _nameController,
                         decoration: const InputDecoration(
@@ -113,7 +141,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         validator: _validateName,
                       ),
+
                       const SizedBox(height: 16),
+
+                      // Email
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
@@ -125,20 +156,76 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         validator: _validateEmail,
                       ),
+
                       const SizedBox(height: 16),
+
+                      // Password
                       TextFormField(
                         controller: _passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
                           labelText: 'Password',
-                          prefixIcon: Icon(Icons.lock),
-                          border: OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.lock),
+                          border: const OutlineInputBorder(),
                           hintText:
-                              'Min 6 chars with uppercase, lowercase & number',
+                          'Min 6 chars with uppercase, lowercase & number',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
                         ),
                         validator: _validatePassword,
                       ),
+
                       const SizedBox(height: 16),
+
+                      // Confirm Password
+                      TextFormField(
+                        controller: _confirmPasswordController,
+                        obscureText: _obscureConfirmPassword,
+                        decoration: InputDecoration(
+                          labelText: 'Confirm Password',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          border: const OutlineInputBorder(),
+                          hintText: 'Re-enter your password',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureConfirmPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureConfirmPassword =
+                                !_obscureConfirmPassword;
+                              });
+                            },
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please confirm your password';
+                          }
+
+                          if (value != _passwordController.text) {
+                            return 'Passwords do not match';
+                          }
+
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Role Dropdown
                       DropdownButtonFormField<String>(
                         initialValue: _selectedRole,
                         decoration: const InputDecoration(
@@ -156,10 +243,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: Text('Lecturer'),
                           ),
                         ],
-                        onChanged: (value) =>
-                            setState(() => _selectedRole = value!),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedRole = value!;
+                          });
+                        },
                       ),
+
                       const SizedBox(height: 24),
+
+                      // Register Button
                       SizedBox(
                         width: double.infinity,
                         height: 50,
@@ -167,28 +260,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onPressed: authProvider.isLoading
                               ? null
                               : () async {
-                                  if (_formKey.currentState!.validate()) {
-                                    try {
-                                      await authProvider.register(
-                                        _nameController.text,
-                                        _emailController.text,
-                                        _passwordController.text,
-                                        _selectedRole,
-                                      );
-                                      if (mounted) Navigator.pop(context);
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Registration failed: ${e.toString()}',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
+                            if (_formKey.currentState!.validate()) {
+                              try {
+                                await authProvider.register(
+                                  _nameController.text.trim(),
+                                  _emailController.text.trim(),
+                                  _passwordController.text.trim(),
+                                  _selectedRole,
+                                );
+
+                                if (mounted) {
+                                  Navigator.pop(context);
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Registration failed: ${e.toString()}',
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.indigo,
                             foregroundColor: Colors.white,
@@ -198,12 +294,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           child: authProvider.isLoading
                               ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
+                            color: Colors.white,
+                          )
                               : const Text(
-                                  'Register',
-                                  style: TextStyle(fontSize: 18),
-                                ),
+                            'Register',
+                            style: TextStyle(fontSize: 18),
+                          ),
                         ),
                       ),
                     ],
